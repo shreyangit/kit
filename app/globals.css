@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ============================================================
+   THEME TOKENS — Tailwind v4 @theme
+   Maps semantic color names to CSS custom properties
+   so bg-background, text-foreground etc. work as utilities.
+   ============================================================ */
+@theme inline {
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-scale-in: scale-in 0.15s ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+/* ============================================================
+   DESIGN TOKENS — Three themes
+   Using actual color values (not hsl() wrappers) so Tailwind
+   v4 can compute opacity modifiers correctly.
+   ============================================================ */
+
+/* Dark theme (default) */
+:root,
+.dark {
+  --background: oklch(0.12 0.005 250);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.15 0.005 250);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.15 0.005 250);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.7 0.13 185);          /* teal */
+  --primary-foreground: oklch(0.1 0.01 185);
+  --secondary: oklch(0.2 0.005 250);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.2 0.005 250);
+  --muted-foreground: oklch(0.55 0.005 250);
+  --accent: oklch(0.7 0.13 185);
+  --accent-foreground: oklch(0.1 0.01 185);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.25 0.005 250);
+  --input: oklch(0.25 0.005 250);
+  --ring: oklch(0.7 0.13 185);
+  --radius: 0.5rem;
+}
+
+/* Light theme */
+.light {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0.005 250);
+  --card: oklch(0.98 0 0);
+  --card-foreground: oklch(0.15 0.005 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.005 250);
+  --primary: oklch(0.52 0.14 185);         /* teal, darker for contrast on white */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.002 250);
+  --secondary-foreground: oklch(0.15 0.005 250);
+  --muted: oklch(0.94 0.002 250);
+  --muted-foreground: oklch(0.5 0.005 250);
+  --accent: oklch(0.52 0.14 185);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.88 0.002 250);
+  --input: oklch(0.88 0.002 250);
+  --ring: oklch(0.52 0.14 185);
+  --radius: 0.5rem;
+}
+
+/* Slate theme (Bloomberg/Linear aesthetic) */
+.slate {
+  --background: oklch(0.28 0.018 235);
+  --foreground: oklch(0.92 0.008 220);
+  --card: oklch(0.22 0.018 235);
+  --card-foreground: oklch(0.92 0.008 220);
+  --popover: oklch(0.22 0.018 235);
+  --popover-foreground: oklch(0.92 0.008 220);
+  --primary: oklch(0.65 0.19 200);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.32 0.018 235);
+  --secondary-foreground: oklch(0.92 0.008 220);
+  --muted: oklch(0.32 0.018 235);
+  --muted-foreground: oklch(0.58 0.012 235);
+  --accent: oklch(0.65 0.19 200);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.35 0.018 235);
+  --input: oklch(0.35 0.018 235);
+  --ring: oklch(0.65 0.19 200);
+  --radius: 0.5rem;
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: color-mix(in oklch, var(--primary) 25%, transparent);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
