@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { PrefillData } from '../../../types'
 
 type Algo = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512'

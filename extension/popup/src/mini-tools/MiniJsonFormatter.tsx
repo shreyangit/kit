@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { PrefillData } from '../../../types'
 
 export function MiniJsonFormatter({ prefillData }: { prefillData?: PrefillData }) {

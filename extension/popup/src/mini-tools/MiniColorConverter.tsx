@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { PrefillData } from '../../../types'
 
 function hexToRgb(hex: string) {

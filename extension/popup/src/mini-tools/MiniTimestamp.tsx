@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { PrefillData } from '../../../types'
 
 export function MiniTimestamp({ prefillData }: { prefillData?: PrefillData }) {

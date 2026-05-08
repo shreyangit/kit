@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { getTool } from '../../../lib/tools-registry'
 import type { PrefillData } from '../../../types'
 

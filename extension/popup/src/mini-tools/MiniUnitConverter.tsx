@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { PrefillData } from '../../../types'
 
 const UNITS: Record<string, { label: string; units: { name: string; factor: number }[] }> = {
