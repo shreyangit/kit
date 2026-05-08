@@ -77,12 +77,12 @@ export default function HomePage() {
 
       {/* Category filter */}
       {!query && (
-        <div className="flex flex-wrap gap-1.5 mb-6">
+        <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-hide">
           <button
             id="filter-all"
             onClick={() => setActiveCategory("all")}
             className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap shrink-0",
               activeCategory === "all"
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -97,7 +97,7 @@ export default function HomePage() {
               id={`filter-${id}`}
               onClick={() => setActiveCategory(id)}
               className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap shrink-0",
                 activeCategory === id
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"

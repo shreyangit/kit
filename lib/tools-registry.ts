@@ -247,6 +247,58 @@ export const tools: Tool[] = [
     isNew: true,
     isImplemented: true,
   },
+
+  // ── BATCH 5: Part 2 tools ──────────────────────────────────────────────────
+  {
+    id: "url-encoder",
+    name: "URL Encoder / Decoder",
+    description: "Encode or decode URLs in 4 modes: URI Component, Full URI, Base64, Form. Parses query params.",
+    category: "web-seo",
+    icon: "Globe",
+    tags: ["url", "encode", "decode", "uri", "base64", "query", "params", "percent"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "base-converter",
+    name: "Number Base Converter",
+    description: "Convert numbers between Binary, Octal, Decimal, Hex, Base32, Base36. BigInt precision.",
+    category: "text-code",
+    icon: "Binary",
+    tags: ["binary", "hex", "octal", "decimal", "base", "convert", "number", "bigint"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "char-counter",
+    name: "Character & Byte Counter",
+    description: "Count chars, words, bytes (UTF-8/16), reading time. Word frequency, platform limits.",
+    category: "writing",
+    icon: "AlignLeft",
+    tags: ["character", "byte", "counter", "utf8", "utf16", "word", "frequency", "reading"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "lorem-ipsum",
+    name: "Lorem Ipsum Generator",
+    description: "Generate placeholder text by paragraphs, sentences, or words. Plain, HTML, or Markdown output.",
+    category: "writing",
+    icon: "PenLine",
+    tags: ["lorem", "ipsum", "placeholder", "text", "generator", "paragraph", "dummy"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "jwt-decoder",
+    name: "JWT Decoder",
+    description: "Decode JSON Web Tokens client-side. View header, payload, expiry, and standard claims.",
+    category: "privacy-security",
+    icon: "ShieldCheck",
+    tags: ["jwt", "json", "token", "decode", "auth", "bearer", "claims", "expiry"],
+    isNew: true,
+    isImplemented: true,
+  },
 ];
 
 export function getToolById(id: string): Tool | undefined {

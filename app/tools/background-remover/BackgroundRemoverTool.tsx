@@ -98,42 +98,37 @@ export function BackgroundRemoverTool() {
             </div>
 
             {resultUrl ? (
-              // Slider comparison
-              <div className="relative rounded-lg overflow-hidden border border-border/60 select-none" style={{ height: 400 }}>
-                {/* Checkerboard background for transparency */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
-                    backgroundSize: "16px 16px",
-                    backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0",
-                  }}
-                />
-                {/* Result (right) */}
+              // Slider comparison — mouse + touch
+              <div
+                className="relative rounded-lg overflow-hidden border border-border/60 select-none"
+                style={{ height: "clamp(240px, 50vw, 400px)" }}
+              >
+                <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)", backgroundSize: "16px 16px", backgroundPosition: "0 0,0 8px,8px -8px,-8px 0" }} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={resultUrl} alt="Background removed" className="absolute inset-0 w-full h-full object-contain" />
-                {/* Original (left, clipped) */}
                 <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain" />
                 </div>
-                {/* Divider line */}
-                <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-md pointer-events-none" style={{ left: `${sliderPos}%` }}>
-                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[10px] text-slate-600 font-mono cursor-ew-resize pointer-events-auto select-none"
-                    onMouseDown={(e) => {
-                      const container = e.currentTarget.closest(".relative") as HTMLElement;
-                      const move = (ev: MouseEvent) => {
-                        const rect = container.getBoundingClientRect();
-                        const pct = Math.min(100, Math.max(0, ((ev.clientX - rect.left) / rect.width) * 100));
-                        setSliderPos(pct);
-                      };
-                      const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
-                      window.addEventListener("mousemove", move);
-                      window.addEventListener("mouseup", up);
-                    }}
-                  >⟺</div>
+                {/* Drag track — handles mouse & touch */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-white shadow-md"
+                  style={{ left: `${sliderPos}%`, touchAction: "none", cursor: "ew-resize" }}
+                  onMouseDown={(e) => {
+                    const el = e.currentTarget.closest(".relative") as HTMLElement;
+                    const move = (ev: MouseEvent) => { const r = el.getBoundingClientRect(); setSliderPos(Math.min(100, Math.max(0, ((ev.clientX - r.left) / r.width) * 100))); };
+                    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+                    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+                  }}
+                  onTouchStart={(e) => {
+                    const el = e.currentTarget.closest(".relative") as HTMLElement;
+                    const move = (ev: TouchEvent) => { const r = el.getBoundingClientRect(); setSliderPos(Math.min(100, Math.max(0, ((ev.touches[0].clientX - r.left) / r.width) * 100))); };
+                    const up = () => { window.removeEventListener("touchmove", move as EventListener); window.removeEventListener("touchend", up); };
+                    window.addEventListener("touchmove", move as EventListener, { passive: true }); window.addEventListener("touchend", up);
+                  }}
+                >
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[10px] text-slate-600 pointer-events-none">⟺</div>
                 </div>
-                {/* Labels */}
                 <div className="absolute top-2 left-2 text-[10px] bg-black/50 text-white rounded px-1.5 py-0.5">Before</div>
                 <div className="absolute top-2 right-2 text-[10px] bg-black/50 text-white rounded px-1.5 py-0.5">After</div>
               </div>

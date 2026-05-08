@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Upload, X, ImageIcon } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface DropZoneProps {
@@ -106,7 +105,7 @@ export function DropZone({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed py-14 cursor-pointer transition-all duration-150 select-none",
+          "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed py-10 sm:py-14 cursor-pointer transition-all duration-150 select-none",
           isDragging
             ? "border-primary bg-primary/5 scale-[1.01]"
             : "border-border/60 bg-secondary/20 hover:border-primary/40 hover:bg-secondary/30"
@@ -121,19 +120,17 @@ export function DropZone({
         </div>
         <div className="text-center space-y-1">
           <p className="text-sm font-medium text-foreground">
-            {label ?? (isDragging ? "Drop here" : "Drop file or click to select")}
+            {label ?? (isDragging ? "Drop here" : <>
+              <span className="hidden sm:inline">Drop file or click to select</span>
+              <span className="sm:hidden">Tap to select a file</span>
+            </>)}
           </p>
           <p className="text-xs text-muted-foreground">
             {sublabel ?? `${formatList} · max ${maxSizeMB} MB`}
           </p>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-[10px] text-muted-foreground/60">
-                or paste from clipboard (⌘V)
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>Ctrl/Cmd+V to paste an image</TooltipContent>
-          </Tooltip>
+          <p className="hidden sm:block text-[10px] text-muted-foreground/60">
+            or paste from clipboard (⌘V)
+          </p>
         </div>
         <input
           ref={inputRef}
