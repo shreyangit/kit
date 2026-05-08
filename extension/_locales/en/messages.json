@@ -1,0 +1,46 @@
+{
+  "extensionName": {
+    "message": "kit",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "60 instant browser tools — remove backgrounds, convert files, format code. All private.",
+    "description": "Short description shown in the Chrome Web Store"
+  },
+  "openTools": {
+    "message": "Open kit tools",
+    "description": "Tooltip on the toolbar icon"
+  },
+  "searchPlaceholder": {
+    "message": "Search 60 tools…",
+    "description": "Placeholder text in the search bar"
+  },
+  "recentTools": {
+    "message": "Recent",
+    "description": "Section heading for recently used tools"
+  },
+  "pinnedTools": {
+    "message": "Pinned",
+    "description": "Section heading for pinned tools"
+  },
+  "allTools": {
+    "message": "All Tools",
+    "description": "Section heading for the category grid"
+  },
+  "noResults": {
+    "message": "No tools found",
+    "description": "Empty state heading when search returns nothing"
+  },
+  "noResultsSub": {
+    "message": "Try a different search term",
+    "description": "Empty state subtitle"
+  },
+  "openFullTab": {
+    "message": "Open in full tab",
+    "description": "Button to open a tool in a new browser tab"
+  },
+  "back": {
+    "message": "Back",
+    "description": "Back navigation button label"
+  }
+}
