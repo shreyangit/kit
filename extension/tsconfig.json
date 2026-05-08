@@ -6,7 +6,8 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -23,5 +24,3 @@
   "include": ["popup/src", "service-worker", "content-script", "lib", "tests", "types.ts"],
   "exclude": ["node_modules", "build", "dist"]
 }
-
-

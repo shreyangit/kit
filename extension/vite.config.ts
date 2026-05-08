@@ -28,7 +28,7 @@ function copyExtensionFiles() {
         }
       }
       // Copy _locales dir recursively
-      function copyDir(src, dest) {
+      function copyDir(src: string, dest: string) {
         fs.mkdirSync(dest, { recursive: true })
         for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
           const s = path.join(src, entry.name)
