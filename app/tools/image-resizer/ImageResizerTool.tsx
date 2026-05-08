@@ -133,8 +133,8 @@ export function ImageResizerTool() {
     setOutputBlob(null);
   }
 
-  function applyPercent() {
-    const pct = parseFloat(percent);
+  function applyPercent(pctStr: string) {
+    const pct = parseFloat(pctStr);
     if (isNaN(pct) || pct <= 0 || !origW || !origH) return;
     setWidth(String(Math.round(origW * pct / 100)));
     setHeight(String(Math.round(origH * pct / 100)));
@@ -243,7 +243,6 @@ export function ImageResizerTool() {
                 </div>
               </TabsContent>
 
-              {/* Percent tab */}
               <TabsContent value="percent">
                 <div className="flex items-end gap-3">
                   <div className="space-y-1.5 w-36">
@@ -252,15 +251,12 @@ export function ImageResizerTool() {
                       id="resize-percent"
                       type="number"
                       value={percent}
-                      onChange={(e) => setPercent(e.target.value)}
+                      onChange={(e) => { setPercent(e.target.value); applyPercent(e.target.value); }}
                       min={1}
                       max={400}
                       className="font-mono"
                     />
                   </div>
-                  <Button variant="outline" onClick={() => { applyPercent(); }} id="resize-apply-pct">
-                    Apply
-                  </Button>
                   {origW && origH && percent && (
                     <p className="text-xs text-muted-foreground mb-1">
                       → {Math.round(origW * parseFloat(percent || "0") / 100)}

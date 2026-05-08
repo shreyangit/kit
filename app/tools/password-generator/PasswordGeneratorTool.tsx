@@ -93,6 +93,7 @@ export function PasswordGeneratorTool() {
 
   const entropy = calcEntropy(options);
   const strength = strengthFromEntropy(entropy);
+  const allOff = !options.uppercase && !options.lowercase && !options.numbers && !options.symbols;
 
   async function handleCopy(pw: string, idx: number) {
     await navigator.clipboard.writeText(pw);
@@ -106,6 +107,11 @@ export function PasswordGeneratorTool() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {allOff && (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2.5 text-xs text-amber-600 dark:text-amber-400">
+          All character sets are off. Lowercase letters are used as fallback. Turn at least one on.
+        </div>
+      )}
       {/* Strength display */}
       <div className="rounded-lg border border-border/60 bg-card px-5 py-4 space-y-3">
         <div className="flex items-center justify-between">

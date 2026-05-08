@@ -9,9 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { downloadText } from "@/lib/utils/download";
 import { cn } from "@/lib/utils";
 
-function formatJSON(input: string, indent: number): { result?: string; error?: string } {
+function formatJSON(input: string, indent: number, sortKeys = false): { result?: string; error?: string } {
   try {
     const parsed = JSON.parse(input);
+    if (sortKeys) {
+      const sorted = JSON.parse(JSON.stringify(parsed, Object.keys(parsed).sort()));
+      return { result: JSON.stringify(sorted, null, indent) };
+    }
     return { result: JSON.stringify(parsed, null, indent) };
   } catch (e) {
     return { error: (e as Error).message };
@@ -31,6 +35,7 @@ export function JsonFormatterTool() {
   const [output, setOutput] = React.useState("");
   const [error, setError] = React.useState("");
   const [indent, setIndent] = React.useState("2");
+  const [sortKeys, setSortKeys] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
 
   // Keyboard shortcuts
@@ -56,7 +61,7 @@ export function JsonFormatterTool() {
 
   function handleFormat() {
     if (!input.trim()) return;
-    const res = formatJSON(input, parseInt(indent));
+    const res = formatJSON(input, parseInt(indent), sortKeys);
     if (res.result !== undefined) {
       setOutput(res.result);
       setError("");
@@ -195,6 +200,10 @@ export function JsonFormatterTool() {
             </SelectContent>
           </Select>
         </div>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+          <input type="checkbox" id="json-sort-keys" checked={sortKeys} onChange={e => setSortKeys(e.target.checked)} className="rounded" />
+          Sort keys
+        </label>
 
         <Button id="json-format-btn" onClick={handleFormat} disabled={!input.trim()}>
           <Maximize2 className="h-4 w-4" />
