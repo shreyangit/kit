@@ -411,6 +411,48 @@ export const tools: Tool[] = [
     isNew: true,
     isImplemented: true,
   },
+
+  // ── BATCH 7: The 4 missing tools (21-24) ──────────────────────────────────
+  {
+    id: "image-to-text",
+    name: "Image to Text (OCR)",
+    description: "Extract text from images using Tesseract.js. 10 languages, confidence scores. 100% in-browser.",
+    category: "image",
+    icon: "FileText",
+    tags: ["ocr", "image", "text", "tesseract", "extract", "scan", "handwriting"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "exif-viewer",
+    name: "EXIF Viewer & Remover",
+    description: "View and remove EXIF, GPS, IPTC metadata from images. GPS privacy warning with map link.",
+    category: "privacy-security",
+    icon: "ShieldCheck",
+    tags: ["exif", "metadata", "gps", "privacy", "location", "iptc", "xmp", "remove"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "svg-optimizer",
+    name: "SVG Optimizer",
+    description: "Optimise SVG files with SVGO in-browser. 14 options, side-by-side preview, up to 80% reduction.",
+    category: "design",
+    icon: "Crop",
+    tags: ["svg", "optimize", "minify", "svgo", "vector", "compress", "clean"],
+    isNew: true,
+    isImplemented: true,
+  },
+  {
+    id: "favicon-generator",
+    name: "Favicon Generator",
+    description: "Generate all favicon sizes from one image. 7 PNGs, .ico, PWA manifest, HTML snippet in a ZIP.",
+    category: "web-seo",
+    icon: "Image",
+    tags: ["favicon", "icon", "png", "ico", "pwa", "manifest", "generator"],
+    isNew: true,
+    isImplemented: true,
+  },
 ];
 
 export function getToolById(id: string): Tool | undefined {
