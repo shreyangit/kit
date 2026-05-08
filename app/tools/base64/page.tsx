@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { Base64Tool } from "./Base64Tool";
 
 export const metadata: Metadata = {
-  title: "Base64 Encoder / Decoder — kit.shreyannarula.com",
+  title: "Base64 Encoder / Decoder",
   description:
     "Encode and decode Base64 for text and files. Supports data URLs, image previews, and auto-mode detection.",
   alternates: {

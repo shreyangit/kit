@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { WordCountTool } from "./WordCountTool";
 
 export const metadata: Metadata = {
-  title: "Word Count & Readability Analyzer — kit.shreyannarula.com",
+  title: "Word Count & Readability Analyzer",
   description:
     "Live word count, character count, sentences, paragraphs, reading time, and Flesch readability score.",
   alternates: {

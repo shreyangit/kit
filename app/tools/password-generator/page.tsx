@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { PasswordGeneratorTool } from "./PasswordGeneratorTool";
 
 export const metadata: Metadata = {
-  title: "Password Generator — kit.shreyannarula.com",
+  title: "Password Generator",
   description:
     "Generate cryptographically secure passwords with a strength meter. Customise length, character sets, and entropy.",
   alternates: {

@@ -17,14 +17,53 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "kit.shreyannarula.com — Browser Tools",
-  description:
-    "20+ free browser-based utility tools. No uploads, no tracking, 100% private. Image tools, text tools, dev tools and more.",
-  metadataBase: new URL("https://kit.shreyannarula.com"),
-  openGraph: {
-    siteName: "kit.shreyannarula.com",
-    type: "website",
+  title: {
+    default: "kit — 60 Browser Tools",
+    template: "%s — kit",
   },
+  description:
+    "60 free, instant browser tools — image converter, PDF merger, regex tester, JSON formatter, barcode generator, and more. No uploads, no tracking, 100% private.",
+  metadataBase: new URL("https://kit.shreyannarula.com"),
+  keywords: [
+    "browser tools", "online tools", "free tools", "developer tools",
+    "image converter", "pdf tools", "json formatter", "regex tester",
+    "barcode generator", "password generator", "no upload", "privacy",
+  ],
+  authors: [{ name: "Shreyan Narula", url: "https://shreyannarula.com" }],
+  creator: "Shreyan Narula",
+  openGraph: {
+    type: "website",
+    url: "https://kit.shreyannarula.com",
+    siteName: "kit",
+    title: "kit — 60 Instant Browser Tools",
+    description:
+      "60 free browser tools: image, PDF, text, dev, design and more. Zero uploads. Zero tracking. Works offline.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "kit — 60 instant browser tools",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@shreyannarula",
+    creator: "@shreyannarula",
+    title: "kit — 60 Instant Browser Tools",
+    description:
+      "60 free browser tools: image, PDF, text, dev, design and more. No uploads, no tracking.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

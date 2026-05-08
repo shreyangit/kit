@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { MarkdownToHtmlTool } from "./MarkdownToHtmlTool";
 
 export const metadata: Metadata = {
-  title: "Markdown → HTML — kit.shreyannarula.com",
+  title: "Markdown → HTML",
   description: "Convert Markdown to HTML with a live preview. Format toolbar, download as HTML fragment or full page. 100% in-browser.",
   alternates: { canonical: "https://kit.shreyannarula.com/tools/markdown-to-html" },
 };

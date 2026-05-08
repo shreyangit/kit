@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background: rounded zinc-900 square -->
+  <rect width="32" height="32" rx="7" fill="#18181b"/>
+  <!-- Lowercase "k" in white, centered, clean geometric sans -->
+  <!-- Vertical stem of k -->
+  <rect x="10" y="7" width="3" height="18" rx="1.2" fill="white"/>
+  <!-- Upper diagonal arm (top-right) -->
+  <polygon points="13,15.5 21.5,7 18.5,7 12.5,14" fill="white" rx="1"/>
+  <!-- Lower diagonal arm (bottom-right) -->
+  <polygon points="13,16.5 21.5,25 18.5,25 12.5,18" fill="white"/>
+</svg>

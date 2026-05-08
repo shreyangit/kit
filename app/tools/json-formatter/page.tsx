@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { JsonFormatterTool } from "./JsonFormatterTool";
 
 export const metadata: Metadata = {
-  title: "JSON Formatter & Validator — kit.shreyannarula.com",
+  title: "JSON Formatter & Validator",
   description:
     "Format, validate, and minify JSON with real-time syntax checking. 100% in-browser, nothing uploaded.",
   alternates: {
