@@ -1,11 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <!-- Background: rounded zinc-900 square -->
+  <!-- Dark zinc background -->
   <rect width="32" height="32" rx="7" fill="#18181b"/>
-  <!-- Lowercase "k" in white, centered, clean geometric sans -->
-  <!-- Vertical stem of k -->
-  <rect x="10" y="7" width="3" height="18" rx="1.2" fill="white"/>
-  <!-- Upper diagonal arm (top-right) -->
-  <polygon points="13,15.5 21.5,7 18.5,7 12.5,14" fill="white" rx="1"/>
-  <!-- Lower diagonal arm (bottom-right) -->
-  <polygon points="13,16.5 21.5,25 18.5,25 12.5,18" fill="white"/>
+
+  <!--
+    The letter "k" where the two diagonal arms ARE the jaws of an open-end wrench.
+    Reading as a letter: k
+    Reading as a tool: open-end spanner/wrench viewed from the side
+    The fork (gap between arms) = the wrench slot that grips the bolt
+  -->
+
+  <!-- Vertical stem = wrench handle -->
+  <rect x="8" y="6" width="3.5" height="20" rx="1.5" fill="white"/>
+
+  <!-- Upper arm of k = upper jaw of wrench
+       Starts at stem (~16 mid), angles up-right to (24, 7.5)
+       Ends with a thicker jaw block to look like wrench head
+  -->
+  <polygon points="11.5,15  11.5,12.5  21,7  24,7  24,9.5  13,15.5" fill="white"/>
+
+  <!-- Lower arm of k = lower jaw of wrench
+       Mirrors upper, angles down-right, also ends with jaw block
+  -->
+  <polygon points="11.5,17  11.5,19.5  21,25  24,25  24,22.5  13,16.5" fill="white"/>
+
+  <!-- The wrench slot (negative space between jaws) = the k fork gap
+       This is the open gap that would grip a bolt — makes it unmistakably a wrench
+  -->
+  <!-- slot is implicit from the gap between the two polygons above -->
+  <!-- Add a small U-channel hint at the right to make wrench jaw obvious -->
+  <rect x="21.5" y="9" width="2" height="14" rx="0.8" fill="#18181b"/>
 </svg>
