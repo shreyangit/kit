@@ -2,8 +2,6 @@
 
 /* ============================================================
    THEME TOKENS — Tailwind v4 @theme
-   Maps semantic color names to CSS custom properties
-   so bg-background, text-foreground etc. work as utilities.
    ============================================================ */
 @theme inline {
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
@@ -47,94 +45,119 @@
 }
 
 /* ============================================================
-   DESIGN TOKENS — Three themes
-   Using actual color values (not hsl() wrappers) so Tailwind
-   v4 can compute opacity modifiers correctly.
+   DESIGN TOKENS
+   Primary = neutral (white on dark, near-black on light).
+   No brand color — clean, professional, no teal.
    ============================================================ */
 
-/* Dark theme (default) */
+/* Dark (default) */
 :root,
 .dark {
-  --background: oklch(0.12 0.005 250);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0.005 250);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.15 0.005 250);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.7 0.13 185);          /* teal */
-  --primary-foreground: oklch(0.1 0.01 185);
-  --secondary: oklch(0.2 0.005 250);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.2 0.005 250);
-  --muted-foreground: oklch(0.55 0.005 250);
-  --accent: oklch(0.7 0.13 185);
-  --accent-foreground: oklch(0.1 0.01 185);
+  --background: oklch(0.11 0.004 260);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.145 0.004 260);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.145 0.004 260);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.93 0 0);           /* near-white accent */
+  --primary-foreground: oklch(0.11 0 0);
+  --secondary: oklch(0.19 0.004 260);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.19 0.004 260);
+  --muted-foreground: oklch(0.52 0.004 260);
+  --accent: oklch(0.93 0 0);
+  --accent-foreground: oklch(0.11 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.25 0.005 250);
-  --input: oklch(0.25 0.005 250);
-  --ring: oklch(0.7 0.13 185);
+  --border: oklch(0.23 0.004 260);
+  --input: oklch(0.23 0.004 260);
+  --ring: oklch(0.75 0 0);
   --radius: 0.5rem;
 }
 
-/* Light theme */
+/* Light */
 .light {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.15 0.005 250);
-  --card: oklch(0.98 0 0);
-  --card-foreground: oklch(0.15 0.005 250);
+  --foreground: oklch(0.13 0.004 260);
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.13 0.004 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.005 250);
-  --primary: oklch(0.52 0.14 185);         /* teal, darker for contrast on white */
+  --popover-foreground: oklch(0.13 0.004 260);
+  --primary: oklch(0.18 0.004 260);     /* near-black */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0.002 250);
-  --secondary-foreground: oklch(0.15 0.005 250);
-  --muted: oklch(0.94 0.002 250);
-  --muted-foreground: oklch(0.5 0.005 250);
-  --accent: oklch(0.52 0.14 185);
+  --secondary: oklch(0.94 0.002 260);
+  --secondary-foreground: oklch(0.13 0.004 260);
+  --muted: oklch(0.94 0.002 260);
+  --muted-foreground: oklch(0.48 0.005 260);
+  --accent: oklch(0.18 0.004 260);
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.88 0.002 250);
-  --input: oklch(0.88 0.002 250);
-  --ring: oklch(0.52 0.14 185);
+  --border: oklch(0.87 0.002 260);
+  --input: oklch(0.87 0.002 260);
+  --ring: oklch(0.4 0.004 260);
   --radius: 0.5rem;
 }
 
-/* Slate theme (Bloomberg/Linear aesthetic) */
+/* Slate (Bloomberg / Linear) */
 .slate {
-  --background: oklch(0.28 0.018 235);
-  --foreground: oklch(0.92 0.008 220);
-  --card: oklch(0.22 0.018 235);
-  --card-foreground: oklch(0.92 0.008 220);
-  --popover: oklch(0.22 0.018 235);
-  --popover-foreground: oklch(0.92 0.008 220);
-  --primary: oklch(0.65 0.19 200);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.32 0.018 235);
-  --secondary-foreground: oklch(0.92 0.008 220);
-  --muted: oklch(0.32 0.018 235);
-  --muted-foreground: oklch(0.58 0.012 235);
-  --accent: oklch(0.65 0.19 200);
-  --accent-foreground: oklch(1 0 0);
+  --background: oklch(0.22 0.016 250);
+  --foreground: oklch(0.93 0.006 220);
+  --card: oklch(0.185 0.016 250);
+  --card-foreground: oklch(0.93 0.006 220);
+  --popover: oklch(0.185 0.016 250);
+  --popover-foreground: oklch(0.93 0.006 220);
+  --primary: oklch(0.93 0 0);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.27 0.016 250);
+  --secondary-foreground: oklch(0.93 0.006 220);
+  --muted: oklch(0.27 0.016 250);
+  --muted-foreground: oklch(0.56 0.01 250);
+  --accent: oklch(0.93 0 0);
+  --accent-foreground: oklch(0.12 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.35 0.018 235);
-  --input: oklch(0.35 0.018 235);
-  --ring: oklch(0.65 0.19 200);
+  --border: oklch(0.3 0.016 250);
+  --input: oklch(0.3 0.016 250);
+  --ring: oklch(0.7 0 0);
   --radius: 0.5rem;
 }
 
 /* ============================================================
-   BASE STYLES
+   SMOOTH THEME TRANSITIONS — no flash when switching modes
    ============================================================ */
+html {
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+/* Only apply color/bg/border transitions on interactive elements
+   to avoid slowing down animations that need to be instant */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   border-color: var(--border);
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.18s ease,
+    opacity 0.18s ease;
 }
 
+/* Remove transitions from elements where speed matters */
+input, textarea, select, button, a, [role="button"] {
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -145,13 +168,14 @@ body {
   color: var(--foreground);
   line-height: 1.5;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 ::selection {
-  background-color: color-mix(in oklch, var(--primary) 25%, transparent);
+  background-color: color-mix(in oklch, var(--primary) 18%, transparent);
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
@@ -164,16 +188,8 @@ body {
   outline-offset: 2px;
 }
 
-/* Hide scrollbar while keeping scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Prevent horizontal overflow on mobile */
-body {
-  overflow-x: hidden;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }

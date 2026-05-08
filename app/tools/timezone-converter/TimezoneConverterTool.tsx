@@ -41,11 +41,16 @@ function toLocalISOString(d: Date): string {
 
 export function TimezoneConverterTool() {
   const localTZ = React.useMemo(() => getLocalTZ(), []);
-  const [dateStr, setDateStr] = React.useState(() => toLocalISOString(new Date()));
+  const [dateStr, setDateStr] = React.useState("2024-01-01T09:00");
   const [sourceTZ, setSourceTZ] = React.useState(localTZ);
   const [targets, setTargets] = React.useState<string[]>(["UTC", "America/New_York", "Europe/London", "Asia/Kolkata", "Asia/Tokyo"]);
   const [addTZ, setAddTZ] = React.useState("");
   const [allTZs, setAllTZs] = React.useState<string[]>(COMMON_TZ);
+
+  React.useEffect(() => {
+    setDateStr(toLocalISOString(new Date()));
+    setSourceTZ(getLocalTZ());
+  }, []);
 
   React.useEffect(() => {
     try {
