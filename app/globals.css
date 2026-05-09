@@ -124,10 +124,22 @@
 }
 
 /* ============================================================
-   SMOOTH THEME TRANSITIONS — no flash when switching modes
+   SUPPRESS TRANSITIONS ON INITIAL PAINT
+   The blocking script adds .no-transitions for 2 rAF frames.
+   This prevents any stagger/flash when the page first loads.
+   ============================================================ */
+.no-transitions *,
+.no-transitions *::before,
+.no-transitions *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ============================================================
+   SMOOTH THEME TRANSITIONS — only fires for user-initiated changes
    ============================================================ */
 html {
-  transition: background-color 0.22s ease, color 0.22s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Only apply color/bg/border transitions on interactive elements

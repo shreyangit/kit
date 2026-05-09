@@ -73,6 +73,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        {/* Blocking theme script — runs synchronously before first paint, eliminates FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('kit_theme');var v=['dark','light','slate'];var theme=v.includes(t)?t:'dark';var r=document.documentElement;r.classList.remove('dark','light','slate');r.classList.add(theme);r.classList.add('no-transitions');requestAnimationFrame(function(){requestAnimationFrame(function(){r.classList.remove('no-transitions');});});}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         suppressHydrationWarning
@@ -88,3 +96,4 @@ export default function RootLayout({
     </html>
   );
 }
+

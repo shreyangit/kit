@@ -15,14 +15,23 @@ const ThemeContext = React.createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("dark");
+  // Read the theme already applied by the blocking inline script (avoids a state-driven re-apply)
+  const [theme, setThemeState] = React.useState<Theme>(() => {
+    if (typeof document === "undefined") return "dark";
+    const root = document.documentElement;
+    if (root.classList.contains("light")) return "light";
+    if (root.classList.contains("slate")) return "slate";
+    return "dark";
+  });
 
+  // Sync on mount in case the script ran before React hydrated
   React.useEffect(() => {
     const stored = localStorage.getItem("kit_theme") as Theme | null;
-    if (stored && ["dark", "light", "slate"].includes(stored)) {
+    if (stored && ["dark", "light", "slate"].includes(stored) && stored !== theme) {
       applyTheme(stored);
       setThemeState(stored);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function applyTheme(t: Theme) {
