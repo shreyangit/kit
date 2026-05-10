@@ -388,7 +388,7 @@ export function BackgroundRemoverTool() {
             </div>
             
             <div
-              className="relative w-full rounded-2xl overflow-hidden border bg-secondary/5 shadow-inner transition-colors"
+              className="relative w-full rounded-2xl overflow-hidden border bg-secondary/5 shadow-inner"
               style={{
                 height: "clamp(300px, 60vh, 700px)",
                 ...(previewBg === "checker" ? {
@@ -423,25 +423,34 @@ export function BackgroundRemoverTool() {
                     <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain bg-background" />
                   </div>
                   <div
-                    className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 cursor-ew-resize"
+                    className="absolute top-0 bottom-0 w-12 z-20 cursor-ew-resize group"
                     style={{ left: `${sliderPos}%`, touchAction: "none", transform: "translateX(-50%)" }}
                     onPointerDown={(e) => {
+                      // Call setPointerCapture to ensure drag continues even if mouse leaves the element
+                      e.currentTarget.setPointerCapture(e.pointerId);
                       const el = e.currentTarget.parentElement!;
                       const move = (ev: PointerEvent) => {
                         const r = el.getBoundingClientRect();
                         setSliderPos(Math.min(100, Math.max(0, ((ev.clientX - r.left) / r.width) * 100)));
                       };
-                      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+                      const up = (ev: PointerEvent) => { 
+                        e.currentTarget.releasePointerCapture(ev.pointerId);
+                        window.removeEventListener("pointermove", move); 
+                        window.removeEventListener("pointerup", up); 
+                      };
                       window.addEventListener("pointermove", move);
                       window.addEventListener("pointerup", up);
                     }}
                   >
-                    <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center pointer-events-none border">
+                    {/* The visible white line */}
+                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none" />
+                    {/* The circular handle */}
+                    <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center pointer-events-none border group-hover:scale-105 transition-transform">
                       <ArrowLeftRight className="h-5 w-5" style={{ color: "oklch(0.25 0 0)" }} />
                     </div>
                   </div>
-                  <div className="absolute top-4 left-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md">Original</div>
-                  <div className="absolute top-4 right-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md">Result</div>
+                  <div className="absolute top-4 left-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md pointer-events-none">Original</div>
+                  <div className="absolute top-4 right-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md pointer-events-none">Result</div>
                 </>
               ) : (
                 <img src={originalUrl ?? ""} alt="Original" className={cn("w-full h-full object-contain", processing && "opacity-30 blur-sm scale-[0.99] transition-all duration-700")} />
