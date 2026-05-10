@@ -57,8 +57,12 @@ def health():
 
 import gradio as gr
 
-def dummy():
+def dummy(text=None):
     return "kit-api is running"
 
 demo = gr.Interface(fn=dummy, inputs="text", outputs="text")
 app = gr.mount_gradio_app(app, demo, path="/_gradio_empty")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
