@@ -46,9 +46,13 @@ app.include_router(
 @app.get("/health")
 def health():
     """Keepalive ping to prevent HF Space from sleeping."""
-    # We don't load models here so the health check is always blazing fast
-    # and doesn't consume memory.
     return JSONResponse({"status": "ok", "message": "kit-api is awake"})
+
+@app.get("/")
+def root():
+    """Root route — redirects to the Gradio UI."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/_gradio_empty")
 
 # ── ZeroGPU Gradio Mount ──────────────────────────────────────────────────────
 # ZeroGPU requires the Gradio SDK to initialize its CUDA interception hooks.
