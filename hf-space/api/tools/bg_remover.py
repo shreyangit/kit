@@ -1,4 +1,5 @@
 import io
+import traceback
 import torch
 import numpy as np
 from PIL import Image
@@ -86,6 +87,7 @@ async def process_image(file: UploadFile = File(...)):
     try:
         result = remove_bg(image)
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(500, f"Inference failed: {str(e)}")
 
     # Encode result as PNG
