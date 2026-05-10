@@ -1,10 +1,10 @@
-fastapi==0.115.5
-uvicorn[standard]==0.32.1
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
 torch>=2.5.1
 torchvision>=0.20.1
-transformers==4.46.3
-Pillow==11.0.0
-numpy==1.26.4
-spaces==0.31.0
-huggingface-hub==0.26.3
+transformers>=4.46.0
+Pillow>=11.0.0
+numpy>=1.26.0
+spaces>=0.31.0
+huggingface-hub>=0.33.5
 gradio>=4.0.0
