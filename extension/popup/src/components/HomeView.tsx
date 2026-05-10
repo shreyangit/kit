@@ -1,6 +1,7 @@
 import React from 'react'
 import { CATEGORIES, getToolsByCategory, getTool } from '../../../lib/tools-registry'
 import { getContextualTools, getContextLabel } from '../lib/context-detector'
+import { ToolIcon } from './ToolIcon'
 import type { PageContext } from '../../../types'
 
 interface Props {
@@ -27,7 +28,7 @@ export function HomeView({ pageContext, recentTools, pinnedTools, onToolClick, o
                 className="quick-chip"
                 onClick={() => onToolClick(tool.id)}
               >
-                <span>{tool.icon}</span>
+                <ToolIcon name={tool.icon} size={14} />
                 <span>{tool.name}</span>
               </button>
             ))}
@@ -44,7 +45,7 @@ export function HomeView({ pageContext, recentTools, pinnedTools, onToolClick, o
               const tool = getTool(id)
               return tool ? (
                 <button key={id} className="quick-chip" onClick={() => onToolClick(id)}>
-                  <span>{tool.icon}</span>
+                  <ToolIcon name={tool.icon} size={14} />
                   <span>{tool.name}</span>
                 </button>
               ) : null
@@ -62,7 +63,7 @@ export function HomeView({ pageContext, recentTools, pinnedTools, onToolClick, o
               const tool = getTool(id)
               return tool ? (
                 <button key={id} className="recent-chip" onClick={() => onToolClick(id)}>
-                  <span className="recent-chip-icon">{tool.icon}</span>
+                  <span className="recent-chip-icon"><ToolIcon name={tool.icon} size={14} /></span>
                   <span className="recent-chip-name">{tool.name}</span>
                 </button>
               ) : null
@@ -83,7 +84,9 @@ export function HomeView({ pageContext, recentTools, pinnedTools, onToolClick, o
                 className="category-tile"
                 onClick={() => onCategoryClick(cat.id)}
               >
-                <span className="category-tile-icon">{cat.icon}</span>
+                <span className="category-tile-icon">
+                  <ToolIcon name={cat.icon} size={18} />
+                </span>
                 <div className="category-tile-info">
                   <div className="category-tile-name">{cat.label}</div>
                   <div className="category-tile-count">{count} tools</div>

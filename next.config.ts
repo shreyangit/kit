@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Note: removed output: "export" to enable API routes (/api/feedback, /api/health)
-  // Vercel handles SSR natively — no static export needed
+  output: "export",
+  // API routes are handled by Cloudflare Pages Functions in /functions/
+  // See functions/api/feedback.js and functions/api/health.js
 };
 
 export default nextConfig;

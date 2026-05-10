@@ -4,6 +4,7 @@ import type { PrefillData } from '../../../types'
 
 // Lazy load each mini tool — they only load when the user navigates to them
 const MINI_TOOL_MAP: Record<string, React.LazyExoticComponent<React.ComponentType<{ prefillData?: PrefillData }>>> = {
+  // Text & Code — always inline
   'password-generator': lazy(() => import('../mini-tools/MiniPasswordGenerator').then(m => ({ default: m.MiniPasswordGenerator }))),
   'base64':             lazy(() => import('../mini-tools/MiniBase64').then(m => ({ default: m.MiniBase64 }))),
   'hash-generator':     lazy(() => import('../mini-tools/MiniHashGenerator').then(m => ({ default: m.MiniHashGenerator }))),
@@ -25,6 +26,11 @@ const MINI_TOOL_MAP: Record<string, React.LazyExoticComponent<React.ComponentTyp
   'html-entities':      lazy(() => import('../mini-tools/MiniHTMLEntities').then(m => ({ default: m.MiniHTMLEntities }))),
   'jwt-decoder':        lazy(() => import('../mini-tools/MiniJWTDecoder').then(m => ({ default: m.MiniJWTDecoder }))),
   'code-formatter':     lazy(() => import('../mini-tools/MiniCodeFormatter').then(m => ({ default: m.MiniCodeFormatter }))),
+
+  // Image — inline WASM/Canvas runners (new — these were previously redirecting to site)
+  'background-remover': lazy(() => import('../mini-tools/MiniBackgroundRemover').then(m => ({ default: m.MiniBackgroundRemover }))),
+  'image-compressor':   lazy(() => import('../mini-tools/MiniImageCompressor').then(m => ({ default: m.MiniImageCompressor }))),
+  'image-converter':    lazy(() => import('../mini-tools/MiniImageConverter').then(m => ({ default: m.MiniImageConverter }))),
 }
 
 interface Props {
@@ -59,7 +65,7 @@ export function MiniToolRunner({ toolId, prefillData, onBack, onOpenFullTab }: P
         <button className="back-btn" onClick={onBack}>← Back</button>
         <span className="mini-tool-title">{tool?.name ?? toolId}</span>
         <button className="open-full-btn" onClick={onOpenFullTab} title="Open in full tab">
-          ↗ Full tab
+          Full page
         </button>
       </div>
       <div className="mini-tool-body">
