@@ -23,7 +23,7 @@ app = FastAPI(title="kit-api", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://kit.shreyannarula.com", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
