@@ -61,7 +61,7 @@ export function App() {
 
   return (
     <div className="app">
-      <Header onSettingsClick={() => openToolInTab('settings')} />
+      <Header onSettingsClick={() => { chrome.tabs.create({ url: 'https://kit.shreyannarula.com' }); window.close() }} />
 
       <SearchBar
         value={searchQuery}
