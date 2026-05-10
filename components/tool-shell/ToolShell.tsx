@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryMeta, getToolById } from "@/lib/tools-registry";
 import { trackToolUsage } from "@/lib/utils/recently-used";
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 
 interface ToolShellProps {
   toolId: string;
@@ -85,6 +86,9 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
 
       {/* Tool content */}
       {children}
+
+      {/* Feedback widget — Rule 51: collapsed by default, never interrupts */}
+      <FeedbackWidget toolId={toolId} />
     </div>
   );
 }

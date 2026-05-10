@@ -22,6 +22,12 @@ export interface Tool {
   tags: string[];
   isNew?: boolean;
   isImplemented?: boolean;
+  /** Workflow Builder config — Rule 55: add now, fill in as workflow feature is built */
+  workflowConfig?: {
+    acceptsInput: string[];
+    producesOutput: string[];
+    requiredConfig: string[];
+  };
 }
 
 export const categoryMeta: Record<
@@ -656,6 +662,42 @@ export const tools: Tool[] = [
     isNew: true,
     isImplemented: true,
   },
+
+  // ── BATCH 5: Design Tools (Part 5) ─────────────────────────────────────────
+  { id: "color-blindness", name: "Colour Blindness Simulator", description: "Simulate protanopia, deuteranopia, tritanopia, achromatopsia on any image.", category: "design", icon: "Eye", tags: ["color","blindness","accessibility","wcag","simulate","vision"], isNew: true, isImplemented: true },
+  { id: "clip-path", name: "CSS Clip-Path Generator", description: "Drag polygon handles to create clip-path shapes. Presets: triangle, hexagon, star.", category: "design", icon: "Scissors", tags: ["clip","path","css","polygon","shape","mask"], isNew: true, isImplemented: true },
+  { id: "css-animation", name: "CSS Animation Generator", description: "Build @keyframes animations visually. Presets, easing, live preview, CSS output.", category: "design", icon: "PlayCircle", tags: ["css","animation","keyframes","transition","easing","hover"], isNew: true, isImplemented: true },
+  { id: "icon-finder", name: "Icon Finder & Downloader", description: "Search 200,000+ icons from Iconify (Material, Heroicons, Tabler, Lucide).", category: "design", icon: "Star", tags: ["icon","svg","iconify","material","heroicons","tabler","lucide","phosphor"], isNew: true, isImplemented: true },
+  { id: "type-scale", name: "Typography Scale Generator", description: "Generate type scales with musical ratios. CSS vars, Tailwind config, JSON.", category: "design", icon: "Type", tags: ["type","scale","typography","font","ratio","css","tailwind"], isNew: true, isImplemented: true },
+  { id: "palette-advanced", name: "Image Palette Extractor", description: "Extract dominant colours from any image. Up to 24 swatches as hex.", category: "design", icon: "Palette", tags: ["palette","color","extract","image","dominant","hex"], isNew: true, isImplemented: true },
+  { id: "color-bulk", name: "Bulk Colour Converter", description: "Convert multiple hex/rgb/hsl values at once to any format.", category: "design", icon: "RefreshCw", tags: ["color","bulk","convert","hex","rgb","hsl","oklch"], isNew: true, isImplemented: true },
+  { id: "gradient-mesh", name: "Gradient Mesh Generator", description: "Create gradient mesh backgrounds using colour harmony schemes.", category: "design", icon: "Layers", tags: ["gradient","mesh","background","css","color","harmony"], isNew: true, isImplemented: true },
+  { id: "svg-path", name: "SVG Path Editor", description: "Paste path data, see live preview, analyse commands, simplify, and convert.", category: "design", icon: "PenTool", tags: ["svg","path","d","editor","bezier","convert"], isNew: true, isImplemented: true },
+  { id: "css-grid", name: "CSS Grid Generator", description: "Build grid layouts visually. Set columns, rows, gap, custom templates.", category: "design", icon: "Grid", tags: ["css","grid","layout","columns","rows","gap","template"], isNew: true, isImplemented: true },
+  { id: "breakpoint-tester", name: "Responsive Breakpoint Tester", description: "Preview any URL at mobile, tablet, laptop, desktop viewports.", category: "web-seo", icon: "Smartphone", tags: ["responsive","breakpoint","mobile","tablet","desktop","viewport","preview"], isNew: true, isImplemented: true },
+
+  // ── BATCH 6: Text & Code (Part 5) ──────────────────────────────────────────
+  { id: "html-to-markdown", name: "HTML to Markdown Converter", description: "Convert HTML to clean Markdown using Turndown. Handles all common elements.", category: "text-code", icon: "FileDown", tags: ["html","markdown","convert","turndown","text"], isNew: true, isImplemented: true },
+  { id: "yaml-json", name: "YAML ↔ JSON Converter", description: "Convert YAML to JSON and JSON to YAML. Real-time conversion with error highlighting.", category: "text-code", icon: "ArrowLeftRight", tags: ["yaml","json","convert","format","data"], isNew: true, isImplemented: true },
+  { id: "xml-formatter", name: "XML Formatter & Validator", description: "Format, validate, and minify XML in-browser using DOMParser.", category: "text-code", icon: "FileCode", tags: ["xml","format","validate","minify","dom"], isNew: true, isImplemented: true },
+  { id: "toml-json", name: "TOML ↔ JSON Converter", description: "Convert TOML to JSON and JSON to TOML. Handles nested structures.", category: "text-code", icon: "ArrowLeftRight", tags: ["toml","json","convert","config","rust","cargo"], isNew: true, isImplemented: true },
+  { id: "sql-formatter", name: "SQL Formatter", description: "Format SQL queries for PostgreSQL, MySQL, SQLite, BigQuery, T-SQL.", category: "text-code", icon: "Database", tags: ["sql","format","postgresql","mysql","sqlite","query","beautify"], isNew: true, isImplemented: true },
+  { id: "graphql-formatter", name: "GraphQL Schema Formatter", description: "Format and validate GraphQL SDL schemas, queries, and mutations.", category: "text-code", icon: "GitBranch", tags: ["graphql","schema","sdl","format","query","mutation"], isNew: true, isImplemented: true },
+  { id: "env-parser", name: "Environment Variable Parser", description: "Parse .env files into a table, JSON, or cleaned export. Type inference.", category: "text-code", icon: "Terminal", tags: ["env","environment","variable","dotenv","parse","config"], isNew: true, isImplemented: true },
+  { id: "http-status", name: "HTTP Status Code Reference", description: "Complete HTTP status codes with descriptions and usage guidance. 1xx–5xx.", category: "web-seo", icon: "Globe", tags: ["http","status","code","reference","api","rest","404","200"], isNew: true, isImplemented: true },
+  { id: "keyboard-shortcuts", name: "Keyboard Shortcut Cheatsheet", description: "Searchable shortcut reference for Chrome, VS Code, macOS, and Windows.", category: "productivity", icon: "Keyboard", tags: ["keyboard","shortcut","hotkey","vscode","chrome","macos","windows"], isNew: true, isImplemented: true },
+
+  // ── BATCH 7: Part 6 Final Tools ─────────────────────────────────────────────
+  { id: "binary-visualiser", name: "Binary / Hex / Octal Visualiser", description: "Visualise integers, floats (IEEE 754), text (UTF-8), and colours at bit level.", category: "text-code", icon: "Binary", tags: ["binary","hex","octal","ieee754","float","utf8","bits","visualise"], isNew: true, isImplemented: true },
+  { id: "file-tools", name: "File Size Analyser & Batch Renamer", description: "Analyse file sizes and types. Preview batch rename operations.", category: "productivity", icon: "Files", tags: ["file","size","rename","batch","analyser","organise"], isNew: true, isImplemented: true },
+  { id: "morse-code", name: "Morse Code Translator", description: "Translate text to Morse code. Hear it via Web Audio API with WPM control.", category: "text-code", icon: "Radio", tags: ["morse","code","translate","audio","wpm","dots","dashes"], isNew: true, isImplemented: true },
+  { id: "slug-generator", name: "URL Slug Generator", description: "Generate URL-safe slugs from text. Multiple separators, bulk CSV export.", category: "web-seo", icon: "Link", tags: ["slug","url","permalink","seo","kebab-case","camelCase","bulk"], isNew: true, isImplemented: true },
+  { id: "css-specificity", name: "CSS Specificity Calculator", description: "Calculate A/B/C/D specificity for any CSS selector. Compare two selectors.", category: "design", icon: "Calculator", tags: ["css","specificity","selector","id","class","element","cascade"], isNew: true, isImplemented: true },
+  { id: "json-schema", name: "JSON Schema Validator", description: "Validate JSON data against a JSON Schema using AJV. Infer schema from data.", category: "text-code", icon: "ShieldCheck", tags: ["json","schema","validate","ajv","draft7","types"], isNew: true, isImplemented: true },
+  { id: "readability", name: "Readability Scorer", description: "Score text with 6 algorithms: Flesch, FK, Fog, SMOG, Coleman-Liau, ARI.", category: "writing", icon: "BookOpen", tags: ["readability","flesch","fog","smog","ari","grade","text","writing"], isNew: true, isImplemented: true },
+  { id: "text-to-handwriting", name: "Text to Handwriting", description: "Convert typed text to handwritten-style images. Multiple fonts, download PNG.", category: "writing", icon: "PenLine", tags: ["handwriting","text","image","canvas","font","google","png"], isNew: true, isImplemented: true },
+  { id: "data-url", name: "Data URL Encoder / Decoder", description: "Encode files to data URLs or decode data URLs back to files.", category: "text-code", icon: "FileCode2", tags: ["data","url","base64","encode","decode","mime","datauri"], isNew: true, isImplemented: true },
+  { id: "speed-test", name: "Network Speed Test", description: "Test download speed and ping to this server. Historical tracking.", category: "productivity", icon: "Wifi", tags: ["speed","test","network","ping","download","bandwidth","latency"], isNew: true, isImplemented: true },
 ];
 
 export function getToolById(id: string): Tool | undefined {
