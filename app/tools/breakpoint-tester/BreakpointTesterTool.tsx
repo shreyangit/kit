@@ -2,13 +2,13 @@
 import * as React from "react";
 
 const BREAKPOINTS = [
-  { label: 'Mobile S', w: 320, h: 568, icon: '📱' },
-  { label: 'Mobile M', w: 375, h: 667, icon: '📱' },
-  { label: 'Mobile L', w: 414, h: 896, icon: '📱' },
-  { label: 'Tablet', w: 768, h: 1024, icon: '📟' },
-  { label: 'Laptop', w: 1024, h: 768, icon: '💻' },
-  { label: 'Desktop', w: 1280, h: 800, icon: '🖥' },
-  { label: '4K', w: 1920, h: 1080, icon: '🖥' },
+  { label: 'Mobile S',  w: 320,  h: 568,  icon: 'S' },
+  { label: 'Mobile M',  w: 375,  h: 667,  icon: 'M' },
+  { label: 'Mobile L',  w: 414,  h: 896,  icon: 'L' },
+  { label: 'Tablet',    w: 768,  h: 1024, icon: 'T' },
+  { label: 'Laptop',    w: 1024, h: 768,  icon: '□' },
+  { label: 'Desktop',   w: 1280, h: 800,  icon: '□' },
+  { label: '4K',        w: 1920, h: 1080, icon: '4K' },
 ];
 
 export function BreakpointTesterTool() {

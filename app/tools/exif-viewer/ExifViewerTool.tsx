@@ -27,11 +27,11 @@ function formatVal(k: string, v: unknown): string {
 }
 
 const GROUPS: { label: string; keys: string[]; icon: string }[] = [
-  { label: "Camera", icon: "📷", keys: ["Make", "Model", "LensModel", "FNumber", "ExposureTime", "ISO", "FocalLength", "Flash", "ExposureMode", "WhiteBalance", "MeteringMode"] },
-  { label: "Image", icon: "🖼️", keys: ["ImageWidth", "ImageHeight", "ColorSpace", "Orientation", "BitsPerSample", "Compression"] },
-  { label: "Date & Time", icon: "📅", keys: ["DateTimeOriginal", "DateTime", "DateTimeDigitized", "OffsetTimeOriginal"] },
-  { label: "GPS", icon: "📍", keys: ["latitude", "longitude", "GPSAltitude", "GPSSpeed", "GPSImgDirection"] },
-  { label: "Copyright", icon: "©", keys: ["Artist", "Copyright", "Software", "HostComputer", "ProcessingSoftware"] },
+  { label: "Camera",     icon: "CAM", keys: ["Make", "Model", "LensModel", "FNumber", "ExposureTime", "ISO", "FocalLength", "Flash", "ExposureMode", "WhiteBalance", "MeteringMode"] },
+  { label: "Image",      icon: "IMG", keys: ["ImageWidth", "ImageHeight", "ColorSpace", "Orientation", "BitsPerSample", "Compression"] },
+  { label: "Date & Time",icon: "DT",  keys: ["DateTimeOriginal", "DateTime", "DateTimeDigitized", "OffsetTimeOriginal"] },
+  { label: "GPS",        icon: "GPS", keys: ["latitude", "longitude", "GPSAltitude", "GPSSpeed", "GPSImgDirection"] },
+  { label: "Copyright",  icon: "©",   keys: ["Artist", "Copyright", "Software", "HostComputer", "ProcessingSoftware"] },
 ];
 
 export function ExifViewerTool() {

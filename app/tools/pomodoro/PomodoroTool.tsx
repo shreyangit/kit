@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 
 type Phase = "work" | "short-break" | "long-break";
 
-const PHASE_META: Record<Phase, { label: string; emoji: string; color: string }> = {
-  "work": { label: "Focus", emoji: "🍅", color: "text-rose-400" },
-  "short-break": { label: "Short Break", emoji: "☕", color: "text-teal-400" },
-  "long-break": { label: "Long Break", emoji: "🌿", color: "text-green-400" },
+const PHASE_META: Record<Phase, { label: string; color: string }> = {
+  "work":        { label: "Focus",       color: "text-rose-400" },
+  "short-break": { label: "Short Break", color: "text-teal-400" },
+  "long-break":  { label: "Long Break",  color: "text-green-400" },
 };
 
 function playBell() {
@@ -80,8 +80,7 @@ export function PomodoroTool() {
   React.useEffect(() => {
     const m = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
     const s = (secondsLeft % 60).toString().padStart(2, "0");
-    const e = PHASE_META[phase].emoji;
-    document.title = running ? `${e} ${m}:${s} — Pomodoro` : "Pomodoro — kit";
+    document.title = running ? `${m}:${s} — Pomodoro` : "Pomodoro — kit";
     return () => { document.title = "kit"; };
   }, [secondsLeft, running, phase]);
 
@@ -165,7 +164,7 @@ export function PomodoroTool() {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-4xl font-mono font-bold text-foreground">{mins}:{secs}</span>
-            <span className={cn("text-xs font-medium mt-1", PHASE_META[phase].color)}>{PHASE_META[phase].emoji} {PHASE_META[phase].label}</span>
+            <span className={cn("text-xs font-medium mt-1", PHASE_META[phase].color)}>{PHASE_META[phase].label}</span>
           </div>
         </div>
 

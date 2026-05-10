@@ -57,7 +57,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: "temperature", label: "Temperature", icon: "🌡",
+    id: "temperature", label: "Temperature", icon: "°",
     units: [
       {
         id: "c", label: "Celsius", symbol: "°C",
@@ -122,7 +122,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: "data", label: "Data", icon: "💾",
+    id: "data", label: "Data", icon: "B",
     units: [
       { id: "bit", label: "Bit", symbol: "bit", ...lin(0.125) },
       { id: "byte", label: "Byte", symbol: "B", ...lin(1) },
