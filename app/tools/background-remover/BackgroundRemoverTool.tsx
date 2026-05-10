@@ -418,45 +418,33 @@ export function BackgroundRemoverTool() {
               {/* Slider */}
               {resultUrl && !processing ? (
                 <>
-                  <img src={resultUrl} alt="Result" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" />
+                  <img src={resultUrl} alt="Result" draggable={false} className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" />
+                  
                   <div className="absolute inset-0 overflow-hidden border-r-2 border-white/80 pointer-events-none select-none" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
-                    <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain bg-background" />
+                    <img src={originalUrl ?? ""} alt="Original" draggable={false} className="absolute inset-0 w-full h-full object-contain bg-background" />
                   </div>
+
+                  {/* Bulletproof Native Range Slider */}
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sliderPos}
+                    onChange={(e) => setSliderPos(Number(e.target.value))}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30 m-0 p-0 touch-none"
+                    aria-label="Image comparison slider"
+                  />
+
+                  {/* Visual Thumb (Follows the range input) */}
                   <div
-                    className="absolute top-0 bottom-0 w-12 z-20 cursor-ew-resize group"
-                    style={{ left: `${sliderPos}%`, touchAction: "none", transform: "translateX(-50%)" }}
-                    onPointerDown={(e) => {
-                      const thumb = e.currentTarget;
-                      const container = thumb.parentElement!;
-                      thumb.setPointerCapture(e.pointerId);
-                      
-                      const move = (ev: PointerEvent) => {
-                        const r = container.getBoundingClientRect();
-                        // Cancel drag immediately if mouse leaves the container boundaries
-                        if (ev.clientY < r.top || ev.clientY > r.bottom || ev.clientX < r.left - 50 || ev.clientX > r.right + 50) {
-                          up(ev);
-                          return;
-                        }
-                        setSliderPos(Math.min(100, Math.max(0, ((ev.clientX - r.left) / r.width) * 100)));
-                      };
-                      
-                      const up = (ev: PointerEvent) => { 
-                        try { thumb.releasePointerCapture(ev.pointerId); } catch(e) {}
-                        window.removeEventListener("pointermove", move); 
-                        window.removeEventListener("pointerup", up); 
-                      };
-                      
-                      window.addEventListener("pointermove", move);
-                      window.addEventListener("pointerup", up);
-                    }}
+                    className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 pointer-events-none"
+                    style={{ left: `${sliderPos}%`, transform: "translateX(-50%)" }}
                   >
-                    {/* The visible white line */}
-                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none" />
-                    {/* The circular handle */}
-                    <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center pointer-events-none border group-hover:scale-105 transition-transform">
+                    <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center border">
                       <ArrowLeftRight className="h-5 w-5" style={{ color: "oklch(0.25 0 0)" }} />
                     </div>
                   </div>
+
                   <div className="absolute top-4 left-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md pointer-events-none">Original</div>
                   <div className="absolute top-4 right-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md pointer-events-none">Result</div>
                 </>
