@@ -31,6 +31,8 @@ const MINI_TOOL_MAP: Record<string, React.LazyExoticComponent<React.ComponentTyp
   'background-remover': lazy(() => import('../mini-tools/MiniBackgroundRemover').then(m => ({ default: m.MiniBackgroundRemover }))),
   'image-compressor':   lazy(() => import('../mini-tools/MiniImageCompressor').then(m => ({ default: m.MiniImageCompressor }))),
   'image-converter':    lazy(() => import('../mini-tools/MiniImageConverter').then(m => ({ default: m.MiniImageConverter }))),
+  'image-watermark':    lazy(() => import('../mini-tools/MiniImageWatermark').then(m => ({ default: m.MiniImageWatermark }))),
+  'color-palette':      lazy(() => import('../mini-tools/MiniColorPalette').then(m => ({ default: m.MiniColorPalette }))),
 }
 
 interface Props {

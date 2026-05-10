@@ -1,6 +1,7 @@
 import React from 'react'
 import { CATEGORIES, getToolsByCategory } from '../../../lib/tools-registry'
 import type { ToolCategory } from '../../../lib/tools-registry'
+import { ToolIcon } from './ToolIcon'
 
 interface Props {
   categoryId: string
@@ -21,7 +22,7 @@ export function CategoryView({ categoryId, onBack, onToolClick }: Props) {
           ← Back
         </button>
         <h2 className="category-view-title">
-          <span>{cat.icon}</span>
+          <ToolIcon name={cat.icon} size={16} />
           <span>{cat.label}</span>
         </h2>
       </div>
@@ -33,7 +34,9 @@ export function CategoryView({ categoryId, onBack, onToolClick }: Props) {
             className="tool-card"
             onClick={() => onToolClick(tool.id)}
           >
-            <div className="tool-card-icon">{tool.icon}</div>
+            <div className="tool-card-icon">
+              <ToolIcon name={tool.icon} size={16} />
+            </div>
             <div className="tool-card-info">
               <div className="tool-card-name">{tool.name}</div>
               <div className="tool-card-desc">{tool.description}</div>
