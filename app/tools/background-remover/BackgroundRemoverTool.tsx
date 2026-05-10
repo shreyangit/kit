@@ -314,62 +314,64 @@ export function BackgroundRemoverTool() {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      {/* Mode Toggle & Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-border/60 bg-secondary/10 px-4 py-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Processing Mode</p>
-          <p className="text-xs text-muted-foreground">
-            {mode === "browser" 
-              ? "Runs 100% in your browser. Images never leave your device." 
-              : "Uses high-quality cloud AI. Images are sent securely to our API."}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={cn("text-xs", mode === "browser" ? "font-medium text-foreground" : "text-muted-foreground")}>Private</span>
-          <Switch checked={mode === "api"} onCheckedChange={(c) => setMode(c ? "api" : "browser")} />
-          <span className={cn("text-xs", mode === "api" ? "font-medium text-foreground" : "text-muted-foreground")}>High Quality</span>
-        </div>
-      </div>
-
+    <div className="w-full space-y-8">
       {!file ? (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <span>Works great with:</span>
-            <span className="px-2 py-0.5 rounded-full bg-secondary">Portraits</span>
-            <span className="px-2 py-0.5 rounded-full bg-secondary">Products</span>
-            <span className="px-2 py-0.5 rounded-full bg-secondary">Logos</span>
+        <div className="max-w-3xl mx-auto space-y-6 pt-4">
+          {/* Mode Toggle (Sleek inline version) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border bg-secondary/5 px-5 py-4">
+            <div className="space-y-1">
+              <p className="text-base font-medium">Processing Engine</p>
+              <p className="text-sm text-muted-foreground">
+                {mode === "browser" 
+                  ? "Runs instantly and privately in your browser." 
+                  : "Uses high-quality cloud AI. Free fallback to CPU."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 bg-background border px-3 py-1.5 rounded-full shadow-sm">
+              <span className={cn("text-sm", mode === "browser" ? "font-medium" : "text-muted-foreground")}>Private</span>
+              <Switch checked={mode === "api"} onCheckedChange={(c) => setMode(c ? "api" : "browser")} />
+              <span className={cn("text-sm", mode === "api" ? "font-medium" : "text-muted-foreground")}>Cloud API</span>
+            </div>
           </div>
 
-          <DropZone
-            accept={ACCEPT}
-            maxSizeMB={20}
-            onFiles={([f]) => handleStart(f)}
-            label="Drop image to remove background"
-            sublabel="JPG, PNG, WebP · max 20 MB · paste from clipboard supported"
-          />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <span>Great for:</span>
+            <span className="px-3 py-1 rounded-full bg-secondary/50 border">Portraits</span>
+            <span className="px-3 py-1 rounded-full bg-secondary/50 border">Products</span>
+            <span className="px-3 py-1 rounded-full bg-secondary/50 border">Logos</span>
+          </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="shadow-sm">
+            <DropZone
+              accept={ACCEPT}
+              maxSizeMB={20}
+              onFiles={([f]) => handleStart(f)}
+              label="Drop image to remove background"
+              sublabel="JPG, PNG, WebP · max 20 MB · paste from clipboard supported"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Or paste image URL..."
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              className="text-xs"
+              className="text-sm h-11"
               onKeyDown={(e) => e.key === "Enter" && handleUrlLoad()}
             />
-            <Button variant="secondary" onClick={handleUrlLoad} disabled={!urlInput} className="shrink-0">
-              <LinkIcon className="h-4 w-4 mr-2" /> Load
+            <Button variant="secondary" onClick={handleUrlLoad} disabled={!urlInput} className="shrink-0 h-11 px-6">
+              <LinkIcon className="h-4 w-4 mr-2" /> Load Image
             </Button>
           </div>
 
-          <div className="pt-4 border-t border-border/40">
-            <p className="text-xs text-muted-foreground mb-3">Try a sample image:</p>
-            <div className="flex gap-3">
+          <div className="pt-6 border-t">
+            <p className="text-sm text-muted-foreground mb-4">Try a sample image:</p>
+            <div className="flex gap-4">
               {["portrait", "product", "logo"].map((name) => (
                 <button
                   key={name}
                   onClick={() => handleSample(name)}
-                  className="h-16 w-16 rounded-md border border-border overflow-hidden hover:border-primary transition-colors bg-secondary/20"
+                  className="h-20 w-20 rounded-xl border overflow-hidden hover:border-primary hover:ring-2 ring-primary/20 transition-all bg-secondary/10 shadow-sm"
                 >
                   <img src={`/samples/sample-${name}.png`} alt={name} className="w-full h-full object-cover" />
                 </button>
@@ -378,23 +380,17 @@ export function BackgroundRemoverTool() {
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium">Result</h3>
-              <p className="text-xs text-muted-foreground font-mono">{file.name} · {formatSize(file.size)}</p>
+        <div className="grid lg:grid-cols-[1fr_340px] gap-6 lg:gap-8 items-start">
+          {/* LEFT: Preview Area */}
+          <div className="space-y-4 overflow-hidden">
+            <div className="flex items-center justify-between lg:hidden">
+              <h3 className="text-lg font-medium">Result</h3>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleReset} aria-label="New Image">
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Preview Area */}
-          <div className="space-y-2">
+            
             <div
-              className="relative rounded-lg overflow-hidden border border-border/60 select-none transition-colors"
+              className="relative w-full rounded-2xl overflow-hidden border bg-secondary/5 shadow-inner transition-colors"
               style={{
-                height: "clamp(300px, 65vw, 460px)",
+                height: "clamp(300px, 60vh, 700px)",
                 ...(previewBg === "checker" ? {
                   backgroundImage: [
                     "linear-gradient(45deg, var(--border) 25%, transparent 25%)",
@@ -402,19 +398,19 @@ export function BackgroundRemoverTool() {
                     "linear-gradient(45deg, transparent 75%, var(--border) 75%)",
                     "linear-gradient(-45deg, transparent 75%, var(--border) 75%)",
                   ].join(", "),
-                  backgroundSize: "16px 16px",
-                  backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                  backgroundSize: "24px 24px",
+                  backgroundPosition: "0 0, 0 12px, 12px -12px, -12px 0px",
                   backgroundColor: "var(--muted)",
-                } : previewBg === "white" ? { backgroundColor: "#ffffff" } : { backgroundColor: "#1a1a1a" }),
+                } : previewBg === "white" ? { backgroundColor: "#ffffff" } : { backgroundColor: "#111111" }),
               }}
             >
-              {/* If processing, show dimmed original with shimmer */}
+              {/* processing overlay... */}
               {processing && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[2px]">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/40 backdrop-blur-sm">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite] -translate-x-full" />
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background border border-border shadow-lg">
-                    {progressText.includes("Download") ? <CloudDownload className="h-4 w-4 animate-bounce" /> : <Wand2 className="h-4 w-4 animate-spin" />}
-                    <span className="text-sm font-medium">{progressText}</span>
+                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-background border shadow-xl">
+                    {progressText.includes("Download") ? <CloudDownload className="h-5 w-5 animate-bounce text-primary" /> : <Wand2 className="h-5 w-5 animate-spin text-primary" />}
+                    <span className="text-base font-medium">{progressText}</span>
                   </div>
                 </div>
               )}
@@ -423,13 +419,12 @@ export function BackgroundRemoverTool() {
               {resultUrl && !processing ? (
                 <>
                   <img src={resultUrl} alt="Result" className="absolute inset-0 w-full h-full object-contain" />
-                  <div className="absolute inset-0 overflow-hidden border-r border-white/50" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
+                  <div className="absolute inset-0 overflow-hidden border-r-2 border-white/80" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
                     <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain bg-background" />
                   </div>
-                  {/* Drag Handle */}
                   <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-white shadow-md z-20 cursor-ew-resize"
-                    style={{ left: `${sliderPos}%`, touchAction: "none" }}
+                    className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 cursor-ew-resize"
+                    style={{ left: `${sliderPos}%`, touchAction: "none", transform: "translateX(-50%)" }}
                     onPointerDown={(e) => {
                       const el = e.currentTarget.parentElement!;
                       const move = (ev: PointerEvent) => {
@@ -441,97 +436,128 @@ export function BackgroundRemoverTool() {
                       window.addEventListener("pointerup", up);
                     }}
                   >
-                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-11 w-11 rounded-full bg-white shadow-lg flex items-center justify-center pointer-events-none">
-                      <ArrowLeftRight className="h-4 w-4" style={{ color: "oklch(0.25 0 0)" }} />
+                    <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center pointer-events-none border">
+                      <ArrowLeftRight className="h-5 w-5" style={{ color: "oklch(0.25 0 0)" }} />
                     </div>
                   </div>
-                  <div className="absolute top-3 left-3 text-xs bg-black/60 text-white rounded px-2 py-1 z-10 backdrop-blur-sm">Before</div>
-                  <div className="absolute top-3 right-3 text-xs bg-black/60 text-white rounded px-2 py-1 z-10 backdrop-blur-sm">After</div>
+                  <div className="absolute top-4 left-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md">Original</div>
+                  <div className="absolute top-4 right-4 text-sm font-medium bg-black/60 text-white rounded-md px-3 py-1 z-10 backdrop-blur-md">Result</div>
                 </>
               ) : (
-                <img src={originalUrl ?? ""} alt="Original" className={cn("w-full h-full object-contain", processing && "opacity-40")} />
+                <img src={originalUrl ?? ""} alt="Original" className={cn("w-full h-full object-contain", processing && "opacity-30 blur-sm scale-[0.99] transition-all duration-700")} />
               )}
             </div>
 
-            {/* Preview Toggles */}
-            <div className="flex justify-end gap-1 mt-2">
-              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "checker" && "bg-secondary")} onClick={() => setPreviewBg("checker")}>
+            <div className="flex justify-center gap-2">
+              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", previewBg === "checker" && "bg-secondary")} onClick={() => setPreviewBg("checker")}>
                 <Grid2x2 className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "white" && "bg-secondary")} onClick={() => setPreviewBg("white")}>
+              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", previewBg === "white" && "bg-secondary")} onClick={() => setPreviewBg("white")}>
                 <Square className="h-4 w-4" fill="currentColor" />
               </Button>
-              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "dark" && "bg-secondary")} onClick={() => setPreviewBg("dark")}>
+              <Button variant="ghost" size="icon" className={cn("h-10 w-10 rounded-full", previewBg === "dark" && "bg-secondary")} onClick={() => setPreviewBg("dark")}>
                 <Moon className="h-4 w-4" fill="currentColor" />
               </Button>
             </div>
           </div>
 
-          {error && (
-            <div className="flex items-center justify-between bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg border border-destructive/20">
-              <span>{error}</span>
-              <Button variant="outline" size="sm" onClick={handleRetry} className="h-7 text-xs">Try Again</Button>
-            </div>
-          )}
-
-          {/* Editor Panel */}
-          {!processing && resultUrl && (
-            <div className="space-y-6">
-              <Tabs defaultValue="background" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="background">Background</TabsTrigger>
-                  <TabsTrigger value="edges">Refine Edges</TabsTrigger>
-                </TabsList>
-                <TabsContent value="background" className="space-y-4 pt-4 border rounded-b-lg px-4 pb-4 border-t-0 mt-0">
-                  <div className="flex gap-2 mb-4">
-                    <Button variant={customBgType === "transparent" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("transparent")}>Transparent</Button>
-                    <Button variant={customBgType === "color" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("color")}>Solid Color</Button>
-                    <Button variant={customBgType === "image" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("image")}>Image</Button>
-                  </div>
-                  
-                  {customBgType === "color" && (
-                    <div className="flex gap-2 items-center">
-                      <Input type="color" value={customBgColor} onChange={e => setCustomBgColor(e.target.value)} className="w-12 h-8 p-1" />
-                      <div className="flex gap-1">
-                        {["#ffffff", "#000000", "#f3f4f6", "#1e293b", "#3b82f6", "#ef4444"].map(c => (
-                          <button key={c} className="w-8 h-8 rounded border border-border" style={{ backgroundColor: c }} onClick={() => setCustomBgColor(c)} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {customBgType === "image" && (
-                    <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-xs" />
-                  )}
-                </TabsContent>
-                <TabsContent value="edges" className="space-y-4 pt-4 border rounded-b-lg px-4 pb-4 border-t-0 mt-0">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Edge Softness</span>
-                      <span className="font-mono text-muted-foreground">{edgeBlur}px</span>
-                    </div>
-                    <Slider value={[edgeBlur]} onValueChange={([v]) => setEdgeBlur(v)} max={10} step={1} />
-                  </div>
-                </TabsContent>
-              </Tabs>
-
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 items-center">
-                <Button onClick={() => downloadFormat("png")} className="gap-2">
-                  <Download className="h-4 w-4" /> Download PNG
-                </Button>
-                <Button variant="secondary" onClick={copyToClipboard} className="gap-2">
-                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />} 
-                  {copied ? "Copied!" : "Copy Image"}
-                </Button>
-                <div className="flex-1" />
-                <Button variant="outline" size="sm" onClick={() => downloadFormat("jpeg")}>JPEG</Button>
-                <Button variant="outline" size="sm" onClick={() => downloadFormat("webp")}>WebP</Button>
-                <Button variant="ghost" size="icon" onClick={shareToX} title="Share on X">
-                  <Share2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+          {/* RIGHT: Inspector Panel */}
+          <div className="flex flex-col gap-6 bg-secondary/5 border rounded-2xl p-5 lg:sticky top-6">
+            
+            {/* Header */}
+            <div className="flex items-start justify-between pb-4 border-b">
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold">Inspector</h3>
+                <p className="text-sm text-muted-foreground font-mono truncate max-w-[200px]" title={file.name}>
+                  {file.name}
+                </p>
               </div>
+              <Button variant="ghost" size="icon" onClick={handleReset} className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground">
+                <RotateCcw className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+
+            {error && (
+              <div className="flex flex-col gap-3 bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-xl border border-destructive/20">
+                <p>{error}</p>
+                <Button variant="outline" size="sm" onClick={handleRetry} className="h-8 w-full bg-background">Try Again</Button>
+              </div>
+            )}
+
+            {/* Editor tools (hidden if processing) */}
+            {!processing && resultUrl && (
+              <>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Background</p>
+                  <Tabs defaultValue={customBgType === "transparent" ? "none" : customBgType} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 h-9">
+                      <TabsTrigger value="none" className="text-xs" onClick={() => setCustomBgType("transparent")}>None</TabsTrigger>
+                      <TabsTrigger value="color" className="text-xs" onClick={() => setCustomBgType("color")}>Color</TabsTrigger>
+                      <TabsTrigger value="image" className="text-xs" onClick={() => setCustomBgType("image")}>Image</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="color" className="pt-4 space-y-3">
+                      <div className="flex gap-2 items-center">
+                        <Input type="color" value={customBgColor} onChange={e => setCustomBgColor(e.target.value)} className="w-12 h-10 p-1 cursor-pointer" />
+                        <div className="flex flex-wrap gap-2 flex-1">
+                          {["#ffffff", "#000000", "#f3f4f6", "#1e293b", "#3b82f6", "#ef4444"].map(c => (
+                            <button key={c} className="w-8 h-8 rounded-full border shadow-sm ring-offset-background hover:ring-2 ring-primary/30 transition-all" style={{ backgroundColor: c }} onClick={() => setCustomBgColor(c)} />
+                          ))}
+                        </div>
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="image" className="pt-4">
+                      <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-sm" />
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium">Edge Softness</span>
+                    <span className="font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">{edgeBlur}px</span>
+                  </div>
+                  <Slider value={[edgeBlur]} onValueChange={([v]) => setEdgeBlur(v)} max={10} step={1} className="py-2" />
+                </div>
+
+                <div className="pt-4 border-t space-y-3">
+                  <Button onClick={() => downloadFormat("png")} className="w-full h-11 text-base gap-2">
+                    <Download className="h-5 w-5" /> Download Result
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={copyToClipboard} className="flex-1 h-10 gap-2">
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />} 
+                      {copied ? "Copied" : "Copy"}
+                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => downloadFormat("jpeg")} className="h-10 w-10 shrink-0">
+                          <span className="text-xs font-semibold">JPG</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Download as smaller JPEG (white bg)</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => downloadFormat("webp")} className="h-10 w-10 shrink-0">
+                          <span className="text-xs font-semibold">WEBP</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Download as modern WebP format</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Processing state block inside right panel */}
+            {processing && (
+              <div className="py-8 text-center space-y-3">
+                <Wand2 className="h-8 w-8 mx-auto text-primary animate-pulse" />
+                <p className="text-sm text-muted-foreground">AI is processing your image...</p>
+              </div>
+            )}
+            
+          </div>
         </div>
       )}
       
