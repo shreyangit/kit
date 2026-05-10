@@ -7,3 +7,4 @@ Pillow==11.0.0
 numpy==1.26.4
 spaces==0.31.0
 huggingface-hub==0.26.3
+gradio>=4.0.0

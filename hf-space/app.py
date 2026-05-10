@@ -49,3 +49,16 @@ def health():
     # We don't load models here so the health check is always blazing fast
     # and doesn't consume memory.
     return JSONResponse({"status": "ok", "message": "kit-api is awake"})
+
+# ── ZeroGPU Gradio Mount ──────────────────────────────────────────────────────
+# ZeroGPU requires the Gradio SDK to initialize its CUDA interception hooks.
+# We mount a dummy Gradio app here so you can deploy this as a "Gradio Space" 
+# instead of a Docker Space, allowing our FastAPI routes to use @spaces.GPU.
+
+import gradio as gr
+
+def dummy():
+    return "kit-api is running"
+
+demo = gr.Interface(fn=dummy, inputs="text", outputs="text")
+app = gr.mount_gradio_app(app, demo, path="/_gradio_empty")
