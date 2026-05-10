@@ -1,0 +1,5 @@
+# This file tells Pyrefly/Pyright to ignore missing imports in the hf-space directory.
+# These packages (torch, fastapi, transformers, etc.) are only available
+# inside the Hugging Face Docker container at runtime — not in the local dev environment.
+[tool.pyrefly]
+ignore_missing_imports = true
