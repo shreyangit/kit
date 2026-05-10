@@ -26,7 +26,7 @@ export function SearchBar({ value, onChange, autoFocus }: Props) {
         ref={inputRef}
         className="search-input"
         type="search"
-        placeholder="Search 60 tools…"
+        placeholder="Search 110 tools…"
         value={value}
         onChange={e => onChange(e.target.value)}
         onKeyDown={e => {
