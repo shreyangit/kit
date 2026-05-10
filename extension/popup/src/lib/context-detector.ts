@@ -21,14 +21,14 @@ export function getContextualTools(context: PageContext) {
 
 export function getContextLabel(context: PageContext): string {
   const labels: Record<PageContext, string> = {
-    'image-page':  '🖼️ Image tools for this page',
-    'pdf':         '📄 PDF tools',
-    'has-images':  '🖼️ Image tools',
-    'text-heavy':  '📝 Text tools for this content',
-    'code-page':   '💻 Developer tools',
-    'video-page':  '🎥 Video tools',
-    'form-page':   '📋 Form helper tools',
-    'generic':     '⚡ Quick tools',
+    'image-page':  'Image tools for this page',
+    'pdf':         'PDF tools',
+    'has-images':  'Image tools',
+    'text-heavy':  'Text tools for this content',
+    'code-page':   'Developer tools',
+    'video-page':  'Video tools',
+    'form-page':   'Form helper tools',
+    'generic':     'Quick tools',
   }
   return labels[context]
 }
