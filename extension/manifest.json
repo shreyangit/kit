@@ -47,18 +47,12 @@
     "contextMenus",
     "activeTab",
     "storage",
-    "scripting",
     "notifications",
     "sidePanel",
     "clipboardRead",
     "clipboardWrite",
     "offscreen"
   ],
-
-  "host_permissions": [
-    "<all_urls>"
-  ],
-
   "web_accessible_resources": [
     {
       "resources": ["popup/popup.html", "icons/*"],
