@@ -27,6 +27,7 @@ def get_model():
         _model = AutoModelForImageSegmentation.from_pretrained(
             MODEL_ID,
             trust_remote_code=True,
+            torch_dtype=torch.float32,
         )
         _model.to(DEVICE)
         _model.eval()
