@@ -178,7 +178,11 @@ export function BackgroundRemoverTool() {
         const formData = new FormData();
         formData.append("file", imgFile);
         const res = await fetch(BG_API_URL, { method: "POST", body: formData });
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          let detail = `API error ${res.status}`;
+          try { const j = await res.json(); detail = j.detail || JSON.stringify(j); } catch { detail = await res.text().catch(() => `HTTP ${res.status}`); }
+          throw new Error(detail);
+        }
         setProgressPct(90);
         setProgressText("Receiving result...");
         const blob = await res.blob();
