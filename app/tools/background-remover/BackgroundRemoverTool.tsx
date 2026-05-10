@@ -15,26 +15,6 @@ import { Slider } from "@/components/ui/slider";
 
 const ACCEPT = ["image/jpeg", "image/png", "image/webp"];
 
-// Edge refinement utility
-async function refineEdges(imageBlob: Blob, blurAmount: number): Promise<Blob> {
-  if (blurAmount === 0) return imageBlob;
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return resolve(imageBlob);
-      // Basic feathering by drawing with a slight blur, then compositing
-      ctx.filter = `blur(${blurAmount}px)`;
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob((b) => resolve(b || imageBlob), "image/png");
-    };
-    img.src = URL.createObjectURL(imageBlob);
-  });
-}
-
 // Inject "Made with kit" tEXt metadata into a PNG blob
 async function injectPngMetadata(blob: Blob): Promise<Blob> {
   const buf = await blob.arrayBuffer();
@@ -161,7 +141,6 @@ export function BackgroundRemoverTool() {
   const [customBgType, setCustomBgType] = React.useState<"transparent" | "color" | "image">("transparent");
   const [customBgColor, setCustomBgColor] = React.useState("#ffffff");
   const [customBgBlob, setCustomBgBlob] = React.useState<Blob | null>(null);
-  const [edgeBlur, setEdgeBlur] = React.useState(0);
   const [finalBlob, setFinalBlob] = React.useState<Blob | null>(null);
 
   // Extras
@@ -180,12 +159,11 @@ export function BackgroundRemoverTool() {
   React.useEffect(() => {
     if (!resultBlob) return;
     const updateFinal = async () => {
-      const refined = await refineEdges(resultBlob, edgeBlur);
-      const composited = await compositeBackground(refined, customBgType, customBgColor, customBgBlob, "image/png");
+      const composited = await compositeBackground(resultBlob, customBgType, customBgColor, customBgBlob, "image/png");
       setFinalBlob(composited);
     };
     updateFinal();
-  }, [resultBlob, edgeBlur, customBgType, customBgColor, customBgBlob]);
+  }, [resultBlob, customBgType, customBgColor, customBgBlob]);
 
   const processImage = async (imgFile: File) => {
     setProcessing(true);
@@ -272,17 +250,14 @@ export function BackgroundRemoverTool() {
     setFinalBlob(null);
     setError(null);
     setCustomBgType("transparent");
-    setEdgeBlur(0);
   }
 
   async function downloadFormat(type: "png" | "jpeg" | "webp") {
     if (!resultBlob || !file) return;
-    // Always work from raw AI result, apply user preferences fresh on download
-    const refined = edgeBlur > 0 ? await refineEdges(resultBlob, edgeBlur) : resultBlob;
     // For non-PNG formats, fall back to white if user chose transparent (JPEG/WebP can't be transparent)
     const bgTypeForDl = type !== "png" && customBgType === "transparent" ? "color" : customBgType;
     const bgColorForDl = bgTypeForDl === "color" && customBgType === "transparent" ? "#ffffff" : customBgColor;
-    let outBlob = await compositeBackground(refined, bgTypeForDl, bgColorForDl, customBgBlob, `image/${type}` as "image/png" | "image/jpeg" | "image/webp");
+    let outBlob = await compositeBackground(resultBlob, bgTypeForDl, bgColorForDl, customBgBlob, `image/${type}` as "image/png" | "image/jpeg" | "image/webp");
     if (type === "png") outBlob = await injectPngMetadata(outBlob);
     const name = file.name.replace(/\.[^.]+$/, `_nobg.${type === "jpeg" ? "jpg" : type}`);
     downloadBlob(outBlob, name);
@@ -514,14 +489,6 @@ export function BackgroundRemoverTool() {
                       <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-sm" />
                     </TabsContent>
                   </Tabs>
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium">Edge Softness</span>
-                    <span className="font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">{edgeBlur}px</span>
-                  </div>
-                  <Slider value={[edgeBlur]} onValueChange={([v]) => setEdgeBlur(v)} max={10} step={1} className="py-2" />
                 </div>
 
                 <div className="pt-4 border-t space-y-3">
