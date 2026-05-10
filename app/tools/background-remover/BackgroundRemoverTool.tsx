@@ -1,194 +1,545 @@
 "use client";
 
 import * as React from "react";
-import { Download, RotateCcw } from "lucide-react";
+import { Download, RotateCcw, Copy, Share2, Grid2x2, Square, Moon, ArrowLeftRight, Wand2, CloudDownload, Link as LinkIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropZone, useFilePreview, formatSize } from "@/components/tool-shell/DropZone";
 import { downloadBlob } from "@/lib/utils/download";
+import { cn } from "@/lib/utils";
+import { BG_API_URL } from "./config";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 
 const ACCEPT = ["image/jpeg", "image/png", "image/webp"];
+
+// Edge refinement utility
+async function refineEdges(imageBlob: Blob, blurAmount: number): Promise<Blob> {
+  if (blurAmount === 0) return imageBlob;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(imageBlob);
+      // Basic feathering by drawing with a slight blur, then compositing
+      ctx.filter = `blur(${blurAmount}px)`;
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((b) => resolve(b || imageBlob), "image/png");
+    };
+    img.src = URL.createObjectURL(imageBlob);
+  });
+}
+
+// Inject "Made with kit" tEXt metadata into a PNG blob
+async function injectPngMetadata(blob: Blob): Promise<Blob> {
+  const buf = await blob.arrayBuffer();
+  const src = new Uint8Array(buf);
+
+  // Build tEXt chunk: keyword + \0 + text
+  const keyword = "Comment";
+  const text = "Made with kit — kit.shreyannarula.com";
+  const chunkData = new TextEncoder().encode(keyword + "\0" + text);
+  const chunkLen = chunkData.length;
+
+  // CRC32 implementation (no deps)
+  const crcTable = (() => {
+    const t = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let j = 0; j < 8; j++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      t[i] = c;
+    }
+    return t;
+  })();
+  function crc32(data: Uint8Array) {
+    let crc = 0xffffffff;
+    for (let i = 0; i < data.length; i++) crc = crcTable[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  const typeBytes = new TextEncoder().encode("tEXt");
+  const chunkBody = new Uint8Array(typeBytes.length + chunkData.length);
+  chunkBody.set(typeBytes, 0);
+  chunkBody.set(chunkData, typeBytes.length);
+  const crc = crc32(chunkBody);
+
+  // Length (4B) + type (4B) + data + CRC (4B)
+  const textChunk = new Uint8Array(4 + 4 + chunkLen + 4);
+  const view = new DataView(textChunk.buffer);
+  view.setUint32(0, chunkLen, false);
+  textChunk.set(typeBytes, 4);
+  textChunk.set(chunkData, 8);
+  view.setUint32(8 + chunkLen, crc, false);
+
+  // Insert after IHDR chunk (bytes 0-7 = PNG sig, 8-20 = IHDR length+type, 21+4+4 = IHDR data+crc)
+  // IHDR is always the first chunk: sig(8) + length(4) + IHDR(4) + data(13) + crc(4) = 33 bytes
+  const insertAt = 33;
+  const result = new Uint8Array(src.length + textChunk.length);
+  result.set(src.slice(0, insertAt), 0);
+  result.set(textChunk, insertAt);
+  result.set(src.slice(insertAt), insertAt + textChunk.length);
+
+  return new Blob([result], { type: "image/png" });
+}
+
+// Composite background utility
+async function compositeBackground(
+  fgBlob: Blob,
+  bgType: "transparent" | "color" | "image",
+  color: string,
+  bgBlob: Blob | null,
+  format: "image/png" | "image/jpeg" | "image/webp" = "image/png"
+): Promise<Blob> {
+  if (bgType === "transparent" && format === "image/png") return fgBlob;
+
+  return new Promise((resolve, reject) => {
+    const fgImg = new Image();
+    fgImg.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = fgImg.width;
+      canvas.height = fgImg.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject("No context");
+
+      const drawFgAndResolve = () => {
+        ctx.drawImage(fgImg, 0, 0);
+        canvas.toBlob((b) => (b ? resolve(b) : reject("Blob failed")), format, 0.95);
+      };
+
+      if (bgType === "color") {
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawFgAndResolve();
+      } else if (bgType === "image" && bgBlob) {
+        const bgImg = new Image();
+        bgImg.onload = () => {
+          // Cover logic
+          const scale = Math.max(canvas.width / bgImg.width, canvas.height / bgImg.height);
+          const x = (canvas.width / scale - bgImg.width) / 2;
+          const y = (canvas.height / scale - bgImg.height) / 2;
+          ctx.drawImage(bgImg, x * scale, y * scale, bgImg.width * scale, bgImg.height * scale);
+          drawFgAndResolve();
+        };
+        bgImg.src = URL.createObjectURL(bgBlob);
+      } else {
+        if (format === "image/jpeg") {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        drawFgAndResolve();
+      }
+    };
+    fgImg.src = URL.createObjectURL(fgBlob);
+  });
+}
+
+function humanizeError(e: any): string {
+  const msg = String(e.message || e).toLowerCase();
+  if (msg.includes("fetch") || msg.includes("network")) return "Network error. Check your connection and try again.";
+  if (msg.includes("webassembly") || msg.includes("wasm")) return "WebAssembly error. Try Chrome or Firefox.";
+  if (msg.includes("memory") || msg.includes("oom")) return "Image too complex. Try a smaller image.";
+  return "Processing failed. Please try a different image.";
+}
 
 export function BackgroundRemoverTool() {
   const [file, setFile] = React.useState<File | null>(null);
   const [resultBlob, setResultBlob] = React.useState<Blob | null>(null);
-  const [resultUrl, setResultUrl] = React.useState<string | null>(null);
   const [processing, setProcessing] = React.useState(false);
-  const [modelProgress, setModelProgress] = React.useState<string>("");
-  const [overallProgress, setOverallProgress] = React.useState(0);
+  const [progressText, setProgressText] = React.useState("");
+  const [progressPct, setProgressPct] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
-  const [sliderPos, setSliderPos] = React.useState(50); // before/after slider position
+  const [sliderPos, setSliderPos] = React.useState(50);
+  const [mode, setMode] = React.useState<"browser" | "api">("browser");
+  
+  // Customization state
+  const [previewBg, setPreviewBg] = React.useState<"checker" | "white" | "dark">("checker");
+  const [customBgType, setCustomBgType] = React.useState<"transparent" | "color" | "image">("transparent");
+  const [customBgColor, setCustomBgColor] = React.useState("#ffffff");
+  const [customBgBlob, setCustomBgBlob] = React.useState<Blob | null>(null);
+  const [edgeBlur, setEdgeBlur] = React.useState(0);
+  const [finalBlob, setFinalBlob] = React.useState<Blob | null>(null);
+
+  // Extras
+  const [urlInput, setUrlInput] = React.useState("");
+  const [copied, setCopied] = React.useState(false);
+  const [hasWasm, setHasWasm] = React.useState(true);
 
   const originalUrl = useFilePreview(file);
+  const resultUrl = useFilePreview(finalBlob as File | null);
 
   React.useEffect(() => {
-    return () => { if (resultUrl) URL.revokeObjectURL(resultUrl); };
-  }, [resultUrl]);
+    setHasWasm(typeof WebAssembly !== "undefined");
+  }, []);
 
-  async function handleRemove() {
-    if (!file || processing) return;
+  // Update final blob when customization changes
+  React.useEffect(() => {
+    if (!resultBlob) return;
+    const updateFinal = async () => {
+      const refined = await refineEdges(resultBlob, edgeBlur);
+      const composited = await compositeBackground(refined, customBgType, customBgColor, customBgBlob, "image/png");
+      setFinalBlob(composited);
+    };
+    updateFinal();
+  }, [resultBlob, edgeBlur, customBgType, customBgColor, customBgBlob]);
+
+  const processImage = async (imgFile: File) => {
     setProcessing(true);
     setError(null);
-    setResultBlob(null);
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
-    setResultUrl(null);
-    setOverallProgress(0);
-    setModelProgress("Loading model…");
+    setProgressPct(0);
+    setProgressText("Initializing...");
 
     try {
-      const { removeBackground } = await import("@imgly/background-removal");
-      const blob = await removeBackground(file, {
-        progress: (key: string, current: number, total: number) => {
-          if (total > 0) {
-            const pct = Math.round((current / total) * 100);
-            setOverallProgress(pct);
-            if (key.includes("fetch")) setModelProgress(`Downloading model… ${pct}%`);
-            else if (key.includes("infer")) setModelProgress(`Processing… ${pct}%`);
-            else setModelProgress(`${key} ${pct}%`);
-          }
-        },
-      });
-      const url = URL.createObjectURL(blob);
-      setResultBlob(blob);
-      setResultUrl(url);
-      setModelProgress("");
+      if (mode === "api") {
+        setProgressText("Uploading to API...");
+        setProgressPct(20);
+        const formData = new FormData();
+        formData.append("file", imgFile);
+        const res = await fetch(BG_API_URL, { method: "POST", body: formData });
+        if (!res.ok) throw new Error(await res.text());
+        setProgressPct(90);
+        setProgressText("Receiving result...");
+        const blob = await res.blob();
+        setResultBlob(blob);
+      } else {
+        const { removeBackground } = await import("@imgly/background-removal");
+        const blob = await removeBackground(imgFile, {
+          progress: (key: string, current: number, total: number) => {
+            if (total > 0) {
+              const pct = Math.round((current / total) * 100);
+              setProgressPct(pct);
+              if (key.includes("fetch")) setProgressText(`Downloading AI model (one-time)… ${pct}%`);
+              else if (key.includes("infer")) setProgressText(`Removing background… ${pct}%`);
+              else setProgressText(`${key} ${pct}%`);
+            }
+          },
+        });
+        setResultBlob(blob);
+      }
     } catch (e) {
-      setError(`Failed: ${(e as Error).message}`);
+      setError(humanizeError(e));
     } finally {
       setProcessing(false);
-      setOverallProgress(0);
+      setProgressText("");
+      setProgressPct(0);
+    }
+  };
+
+  function handleStart(selectedFile: File) {
+    setFile(selectedFile);
+    setResultBlob(null);
+    setFinalBlob(null);
+    processImage(selectedFile);
+  }
+
+  function handleRetry() {
+    if (file) processImage(file);
+  }
+
+  async function handleUrlLoad() {
+    if (!urlInput) return;
+    try {
+      setProcessing(true);
+      const res = await fetch(urlInput);
+      if (!res.ok) throw new Error("Could not fetch image");
+      const blob = await res.blob();
+      const f = new File([blob], "image.png", { type: blob.type || "image/png" });
+      handleStart(f);
+    } catch (e) {
+      setError("Image URL must allow cross-origin access (CORS). Try downloading it instead.");
+      setProcessing(false);
     }
   }
 
-  function handleDownload() {
-    if (!resultBlob || !file) return;
-    const name = file.name.replace(/\.[^.]+$/, "_nobg.png");
-    downloadBlob(resultBlob, name);
+  async function handleSample(name: string) {
+    try {
+      const res = await fetch(`/samples/sample-${name}.png`);
+      const blob = await res.blob();
+      const f = new File([blob], `sample-${name}.png`, { type: "image/png" });
+      handleStart(f);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   function handleReset() {
     setFile(null);
     setResultBlob(null);
-    if (resultUrl) URL.revokeObjectURL(resultUrl);
-    setResultUrl(null);
+    setFinalBlob(null);
     setError(null);
+    setCustomBgType("transparent");
+    setEdgeBlur(0);
+  }
+
+  async function downloadFormat(type: "png" | "jpeg" | "webp") {
+    if (!resultBlob || !file) return;
+    // Always work from raw AI result, apply user preferences fresh on download
+    const refined = edgeBlur > 0 ? await refineEdges(resultBlob, edgeBlur) : resultBlob;
+    // For non-PNG formats, fall back to white if user chose transparent (JPEG/WebP can't be transparent)
+    const bgTypeForDl = type !== "png" && customBgType === "transparent" ? "color" : customBgType;
+    const bgColorForDl = bgTypeForDl === "color" && customBgType === "transparent" ? "#ffffff" : customBgColor;
+    let outBlob = await compositeBackground(refined, bgTypeForDl, bgColorForDl, customBgBlob, `image/${type}` as "image/png" | "image/jpeg" | "image/webp");
+    if (type === "png") outBlob = await injectPngMetadata(outBlob);
+    const name = file.name.replace(/\.[^.]+$/, `_nobg.${type === "jpeg" ? "jpg" : type}`);
+    downloadBlob(outBlob, name);
+  }
+
+  async function copyToClipboard() {
+    if (!finalBlob) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": finalBlob })]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error("Clipboard write failed", e);
+    }
+  }
+
+  function shareToX() {
+    const text = encodeURIComponent("Removed a background in seconds with kit (free, in-browser, no upload) 🚀");
+    const url = encodeURIComponent("https://kit.shreyannarula.com/tools/background-remover");
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+  }
+
+  if (!hasWasm) {
+    return (
+      <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        Your browser does not support WebAssembly, which is required for the in-browser model. Please use Chrome, Firefox, or Edge.
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-600 dark:text-amber-400">
-        <strong>First run:</strong> Downloads a ~40 MB AI model (cached after). Processing runs entirely in your browser.
+      {/* Mode Toggle & Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-border/60 bg-secondary/10 px-4 py-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Processing Mode</p>
+          <p className="text-xs text-muted-foreground">
+            {mode === "browser" 
+              ? "Runs 100% in your browser. Images never leave your device." 
+              : "Uses high-quality cloud AI. Images are sent securely to our API."}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={cn("text-xs", mode === "browser" ? "font-medium text-foreground" : "text-muted-foreground")}>Private</span>
+          <Switch checked={mode === "api"} onCheckedChange={(c) => setMode(c ? "api" : "browser")} />
+          <span className={cn("text-xs", mode === "api" ? "font-medium text-foreground" : "text-muted-foreground")}>High Quality</span>
+        </div>
       </div>
 
       {!file ? (
-        <DropZone
-          accept={ACCEPT}
-          maxSizeMB={20}
-          onFiles={([f]) => setFile(f)}
-          label="Drop image to remove background"
-          sublabel="JPG, PNG, WebP · max 20 MB · best with clear subject"
-        />
-      ) : (
-        <div className="space-y-5">
-          {/* Before / After comparison */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Original</span>
-              {resultUrl && <span>Result (transparent)</span>}
-            </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            <span>Works great with:</span>
+            <span className="px-2 py-0.5 rounded-full bg-secondary">Portraits</span>
+            <span className="px-2 py-0.5 rounded-full bg-secondary">Products</span>
+            <span className="px-2 py-0.5 rounded-full bg-secondary">Logos</span>
+          </div>
 
-            {resultUrl ? (
-              // Slider comparison — mouse + touch
-              <div
-                className="relative rounded-lg overflow-hidden border border-border/60 select-none"
-                style={{ height: "clamp(240px, 50vw, 400px)" }}
-              >
-                <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%)", backgroundSize: "16px 16px", backgroundPosition: "0 0,0 8px,8px -8px,-8px 0" }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={resultUrl} alt="Background removed" className="absolute inset-0 w-full h-full object-contain" />
-                <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain" />
-                </div>
-                {/* Drag track — handles mouse & touch */}
-                <div
-                  className="absolute top-0 bottom-0 w-0.5 bg-white shadow-md"
-                  style={{ left: `${sliderPos}%`, touchAction: "none", cursor: "ew-resize" }}
-                  onMouseDown={(e) => {
-                    const el = e.currentTarget.closest(".relative") as HTMLElement;
-                    const move = (ev: MouseEvent) => { const r = el.getBoundingClientRect(); setSliderPos(Math.min(100, Math.max(0, ((ev.clientX - r.left) / r.width) * 100))); };
-                    const up = () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
-                    window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-                  }}
-                  onTouchStart={(e) => {
-                    const el = e.currentTarget.closest(".relative") as HTMLElement;
-                    const move = (ev: TouchEvent) => { const r = el.getBoundingClientRect(); setSliderPos(Math.min(100, Math.max(0, ((ev.touches[0].clientX - r.left) / r.width) * 100))); };
-                    const up = () => { window.removeEventListener("touchmove", move as EventListener); window.removeEventListener("touchend", up); };
-                    window.addEventListener("touchmove", move as EventListener, { passive: true }); window.addEventListener("touchend", up);
-                  }}
+          <DropZone
+            accept={ACCEPT}
+            maxSizeMB={20}
+            onFiles={([f]) => handleStart(f)}
+            label="Drop image to remove background"
+            sublabel="JPG, PNG, WebP · max 20 MB · paste from clipboard supported"
+          />
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="Or paste image URL..."
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              className="text-xs"
+              onKeyDown={(e) => e.key === "Enter" && handleUrlLoad()}
+            />
+            <Button variant="secondary" onClick={handleUrlLoad} disabled={!urlInput} className="shrink-0">
+              <LinkIcon className="h-4 w-4 mr-2" /> Load
+            </Button>
+          </div>
+
+          <div className="pt-4 border-t border-border/40">
+            <p className="text-xs text-muted-foreground mb-3">Try a sample image:</p>
+            <div className="flex gap-3">
+              {["portrait", "product", "logo"].map((name) => (
+                <button
+                  key={name}
+                  onClick={() => handleSample(name)}
+                  className="h-16 w-16 rounded-md border border-border overflow-hidden hover:border-primary transition-colors bg-secondary/20"
                 >
-                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[10px] text-slate-600 pointer-events-none">⟺</div>
-                </div>
-                <div className="absolute top-2 left-2 text-[10px] bg-black/50 text-white rounded px-1.5 py-0.5">Before</div>
-                <div className="absolute top-2 right-2 text-[10px] bg-black/50 text-white rounded px-1.5 py-0.5">After</div>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-border/60 overflow-hidden" style={{ height: 300 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {originalUrl && <img src={originalUrl} alt="Original" className="w-full h-full object-contain bg-secondary/20" />}
-              </div>
-            )}
+                  <img src={`/samples/sample-${name}.png`} alt={name} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium">Result</h3>
+              <p className="text-xs text-muted-foreground font-mono">{file.name} · {formatSize(file.size)}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleReset} aria-label="New Image">
+              <RotateCcw className="h-4 w-4" />
+            </Button>
           </div>
 
-          {/* File info row */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="truncate font-mono">{file.name}</span>
-            <span className="shrink-0">{formatSize(file.size)}</span>
-            {resultBlob && <span className="shrink-0 text-green-500">→ {formatSize(resultBlob.size)} PNG</span>}
-          </div>
-
-          {/* Progress */}
-          {processing && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="inline-block h-4 w-4 rounded-full border-2 border-border border-t-primary animate-spin shrink-0" />
-                <span className="text-xs">{modelProgress}</span>
-              </div>
-              {overallProgress > 0 && (
-                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-                  <div className="h-full bg-primary transition-all duration-300 rounded-full" style={{ width: `${overallProgress}%` }} />
+          {/* Preview Area */}
+          <div className="space-y-2">
+            <div
+              className="relative rounded-lg overflow-hidden border border-border/60 select-none transition-colors"
+              style={{
+                height: "clamp(300px, 65vw, 460px)",
+                ...(previewBg === "checker" ? {
+                  backgroundImage: [
+                    "linear-gradient(45deg, var(--border) 25%, transparent 25%)",
+                    "linear-gradient(-45deg, var(--border) 25%, transparent 25%)",
+                    "linear-gradient(45deg, transparent 75%, var(--border) 75%)",
+                    "linear-gradient(-45deg, transparent 75%, var(--border) 75%)",
+                  ].join(", "),
+                  backgroundSize: "16px 16px",
+                  backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+                  backgroundColor: "var(--muted)",
+                } : previewBg === "white" ? { backgroundColor: "#ffffff" } : { backgroundColor: "#1a1a1a" }),
+              }}
+            >
+              {/* If processing, show dimmed original with shimmer */}
+              {processing && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[2px]">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite] -translate-x-full" />
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background border border-border shadow-lg">
+                    {progressText.includes("Download") ? <CloudDownload className="h-4 w-4 animate-bounce" /> : <Wand2 className="h-4 w-4 animate-spin" />}
+                    <span className="text-sm font-medium">{progressText}</span>
+                  </div>
                 </div>
               )}
+
+              {/* Slider */}
+              {resultUrl && !processing ? (
+                <>
+                  <img src={resultUrl} alt="Result" className="absolute inset-0 w-full h-full object-contain" />
+                  <div className="absolute inset-0 overflow-hidden border-r border-white/50" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
+                    <img src={originalUrl ?? ""} alt="Original" className="absolute inset-0 w-full h-full object-contain bg-background" />
+                  </div>
+                  {/* Drag Handle */}
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-white shadow-md z-20 cursor-ew-resize"
+                    style={{ left: `${sliderPos}%`, touchAction: "none" }}
+                    onPointerDown={(e) => {
+                      const el = e.currentTarget.parentElement!;
+                      const move = (ev: PointerEvent) => {
+                        const r = el.getBoundingClientRect();
+                        setSliderPos(Math.min(100, Math.max(0, ((ev.clientX - r.left) / r.width) * 100)));
+                      };
+                      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+                      window.addEventListener("pointermove", move);
+                      window.addEventListener("pointerup", up);
+                    }}
+                  >
+                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-11 w-11 rounded-full bg-white shadow-lg flex items-center justify-center pointer-events-none">
+                      <ArrowLeftRight className="h-4 w-4" style={{ color: "oklch(0.25 0 0)" }} />
+                    </div>
+                  </div>
+                  <div className="absolute top-3 left-3 text-xs bg-black/60 text-white rounded px-2 py-1 z-10 backdrop-blur-sm">Before</div>
+                  <div className="absolute top-3 right-3 text-xs bg-black/60 text-white rounded px-2 py-1 z-10 backdrop-blur-sm">After</div>
+                </>
+              ) : (
+                <img src={originalUrl ?? ""} alt="Original" className={cn("w-full h-full object-contain", processing && "opacity-40")} />
+              )}
+            </div>
+
+            {/* Preview Toggles */}
+            <div className="flex justify-end gap-1 mt-2">
+              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "checker" && "bg-secondary")} onClick={() => setPreviewBg("checker")}>
+                <Grid2x2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "white" && "bg-secondary")} onClick={() => setPreviewBg("white")}>
+                <Square className="h-4 w-4" fill="currentColor" />
+              </Button>
+              <Button variant="ghost" size="icon" className={cn("h-8 w-8", previewBg === "dark" && "bg-secondary")} onClick={() => setPreviewBg("dark")}>
+                <Moon className="h-4 w-4" fill="currentColor" />
+              </Button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center justify-between bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg border border-destructive/20">
+              <span>{error}</span>
+              <Button variant="outline" size="sm" onClick={handleRetry} className="h-7 text-xs">Try Again</Button>
             </div>
           )}
 
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {/* Editor Panel */}
+          {!processing && resultUrl && (
+            <div className="space-y-6">
+              <Tabs defaultValue="background" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="background">Background</TabsTrigger>
+                  <TabsTrigger value="edges">Refine Edges</TabsTrigger>
+                </TabsList>
+                <TabsContent value="background" className="space-y-4 pt-4 border rounded-b-lg px-4 pb-4 border-t-0 mt-0">
+                  <div className="flex gap-2 mb-4">
+                    <Button variant={customBgType === "transparent" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("transparent")}>Transparent</Button>
+                    <Button variant={customBgType === "color" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("color")}>Solid Color</Button>
+                    <Button variant={customBgType === "image" ? "secondary" : "outline"} size="sm" onClick={() => setCustomBgType("image")}>Image</Button>
+                  </div>
+                  
+                  {customBgType === "color" && (
+                    <div className="flex gap-2 items-center">
+                      <Input type="color" value={customBgColor} onChange={e => setCustomBgColor(e.target.value)} className="w-12 h-8 p-1" />
+                      <div className="flex gap-1">
+                        {["#ffffff", "#000000", "#f3f4f6", "#1e293b", "#3b82f6", "#ef4444"].map(c => (
+                          <button key={c} className="w-8 h-8 rounded border border-border" style={{ backgroundColor: c }} onClick={() => setCustomBgColor(c)} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {customBgType === "image" && (
+                    <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-xs" />
+                  )}
+                </TabsContent>
+                <TabsContent value="edges" className="space-y-4 pt-4 border rounded-b-lg px-4 pb-4 border-t-0 mt-0">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Edge Softness</span>
+                      <span className="font-mono text-muted-foreground">{edgeBlur}px</span>
+                    </div>
+                    <Slider value={[edgeBlur]} onValueChange={([v]) => setEdgeBlur(v)} max={10} step={1} />
+                  </div>
+                </TabsContent>
+              </Tabs>
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2">
-            {!resultBlob ? (
-              <Button onClick={handleRemove} disabled={processing} id="bgremove-btn">
-                {processing ? "Processing…" : "Remove Background"}
-              </Button>
-            ) : (
-              <>
-                <Button onClick={handleRemove} disabled={processing} variant="outline" id="bgremove-retry-btn">
-                  {processing ? "Processing…" : "Run Again"}
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 items-center">
+                <Button onClick={() => downloadFormat("png")} className="gap-2">
+                  <Download className="h-4 w-4" /> Download PNG
                 </Button>
-                <Button onClick={handleDownload} id="bgremove-download-btn">
-                  <Download className="h-4 w-4" />Download PNG
+                <Button variant="secondary" onClick={copyToClipboard} className="gap-2">
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />} 
+                  {copied ? "Copied!" : "Copy Image"}
                 </Button>
-              </>
-            )}
-            <Button variant="ghost" size="icon" onClick={handleReset} id="bgremove-reset-btn" aria-label="Reset">
-              <Tooltip>
-                <TooltipTrigger asChild><span><RotateCcw className="h-4 w-4" /></span></TooltipTrigger>
-                <TooltipContent>Reset</TooltipContent>
-              </Tooltip>
-            </Button>
-          </div>
+                <div className="flex-1" />
+                <Button variant="outline" size="sm" onClick={() => downloadFormat("jpeg")}>JPEG</Button>
+                <Button variant="outline" size="sm" onClick={() => downloadFormat("webp")}>WebP</Button>
+                <Button variant="ghost" size="icon" onClick={shareToX} title="Share on X">
+                  <Share2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}} />
     </div>
   );
 }
