@@ -1,6 +1,6 @@
 // MiniImageConverter — Canvas API, inline format conversion
 import React, { useState, useRef } from 'react'
-import type { PrefillData } from '../../../../types'
+import type { PrefillData } from '../../../types'
 interface Props { prefillData?: PrefillData }
 
 export function MiniImageConverter({ prefillData }: Props) {

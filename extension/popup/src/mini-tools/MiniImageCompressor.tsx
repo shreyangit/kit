@@ -1,6 +1,6 @@
 // MiniImageCompressor — Canvas API, no external deps, fully inline
 import React, { useState, useRef, useCallback } from 'react'
-import type { PrefillData } from '../../../../types'
+import type { PrefillData } from '../../../types'
 interface Props { prefillData?: PrefillData }
 
 export function MiniImageCompressor({ prefillData }: Props) {

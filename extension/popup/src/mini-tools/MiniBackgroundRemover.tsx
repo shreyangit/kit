@@ -2,7 +2,7 @@
 // Runs @imgly/background-removal entirely in-browser via WASM.
 // Works offline after first load. No data leaves the browser.
 import React, { useState, useCallback, useRef } from 'react'
-import type { PrefillData } from '../../../../types'
+import type { PrefillData } from '../../../types'
 
 interface Props { prefillData?: PrefillData }
 
