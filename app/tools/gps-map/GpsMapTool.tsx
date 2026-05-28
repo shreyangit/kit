@@ -1,7 +1,8 @@
 "use client";
 import * as React from "react";
-import { Upload, Copy, Check, MapPin, Camera, Navigation, ExternalLink } from "lucide-react";
+import { Copy, Check, MapPin, Navigation, ExternalLink, Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ExifData {
   latitude: number; longitude: number; altitude?: number; direction?: number;
@@ -61,9 +62,18 @@ export function GpsMapTool() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
+  const [dragging, setDragging] = React.useState(false);
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const urlRef = React.useRef<string | null>(null);
+
+  // Revoke the previous object URL whenever a new one replaces it, and on unmount.
+  React.useEffect(() => () => { if (urlRef.current) URL.revokeObjectURL(urlRef.current); }, []);
 
   async function handleFile(file: File) {
+    if (!file.type.startsWith("image/") && !/\.(jpe?g|heic|heif|tiff?|png)$/i.test(file.name)) {
+      setError("That doesn't look like an image. Drop a JPG, HEIC, or TIFF photo.");
+      return;
+    }
     setLoading(true); setError(null); setExif(null);
     try {
       const exifr = await import("exifr");
@@ -71,11 +81,13 @@ export function GpsMapTool() {
         exifr.gps(file),
         exifr.parse(file, ["Make", "Model", "DateTimeOriginal", "GPSAltitude", "GPSImgDirection"]),
       ]);
-      if (!gps?.latitude || !gps?.longitude) {
+      if (gps?.latitude == null || gps?.longitude == null) {
         setError("No GPS data found in this image. GPS is usually present in smartphone photos with location enabled.");
         setLoading(false); return;
       }
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
       const imageUrl = URL.createObjectURL(file);
+      urlRef.current = imageUrl;
       setExif({
         latitude: gps.latitude, longitude: gps.longitude,
         altitude: meta?.GPSAltitude, direction: meta?.GPSImgDirection,
@@ -96,12 +108,17 @@ export function GpsMapTool() {
     <div className="space-y-5 max-w-2xl">
       {/* Upload */}
       <button onClick={() => fileRef.current?.click()}
-        onDragOver={e => e.preventDefault()}
-        onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-        className="w-full rounded-lg border-2 border-dashed border-border/60 bg-secondary/10 hover:border-foreground/20 py-10 flex flex-col items-center gap-2 cursor-pointer transition-colors" id="gps-dropzone">
-        <MapPin className="h-7 w-7 text-muted-foreground" />
-        <p className="text-sm font-medium">Drop image or tap to select</p>
-        <p className="text-xs text-muted-foreground">JPG, HEIC, TIFF — must have GPS EXIF data</p>
+        onDragOver={e => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={e => { e.preventDefault(); setDragging(false); }}
+        onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+        className={cn(
+          "w-full rounded-lg border-2 border-dashed py-10 flex flex-col items-center gap-2 cursor-pointer transition-all",
+          dragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border/60 bg-secondary/10 hover:border-foreground/20"
+        )}
+        id="gps-dropzone">
+        <MapPin className={cn("h-7 w-7", dragging ? "text-primary" : "text-muted-foreground")} />
+        <p className="text-sm font-medium">{dragging ? "Drop here" : "Drop image or tap to select"}</p>
+        <p className="text-xs text-muted-foreground">JPG, HEIC, TIFF — must have GPS EXIF data · 100% private, never uploaded</p>
       </button>
       <input ref={fileRef} type="file" accept="image/*" className="sr-only"
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
@@ -116,7 +133,7 @@ export function GpsMapTool() {
         <div className="rounded-lg border border-border/60 bg-card px-4 py-4 text-center space-y-1">
           <MapPin className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">{error}</p>
-          <p className="text-xs text-muted-foreground/60 mt-2">Tip: Most smartphone photos have GPS when location permission is granted. Screenshots and downloaded images usually don't.</p>
+          <p className="text-xs text-muted-foreground/60 mt-2">Tip: Most smartphone photos have GPS when location permission is granted. Screenshots and downloaded images usually don&apos;t.</p>
         </div>
       )}
 
@@ -158,6 +175,9 @@ export function GpsMapTool() {
             </a>
             <a href={`https://maps.apple.com/?ll=${exif.latitude},${exif.longitude}`} target="_blank" rel="noopener noreferrer">
               <Button size="sm" variant="outline" className="gap-1.5"><Navigation className="h-3.5 w-3.5" />Apple Maps</Button>
+            </a>
+            <a href={`https://www.openstreetmap.org/?mlat=${exif.latitude}&mlon=${exif.longitude}#map=16/${exif.latitude}/${exif.longitude}`} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline" className="gap-1.5"><MapIcon className="h-3.5 w-3.5" />OpenStreetMap</Button>
             </a>
           </div>
         </div>

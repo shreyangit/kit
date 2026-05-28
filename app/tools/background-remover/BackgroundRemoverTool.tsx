@@ -150,6 +150,7 @@ export function BackgroundRemoverTool() {
 
   const originalUrl = useFilePreview(file);
   const resultUrl = useFilePreview(finalBlob as File | null);
+  const customBgUrl = useFilePreview(customBgBlob as File | null);
 
   React.useEffect(() => {
     setHasWasm(typeof WebAssembly !== "undefined");
@@ -489,8 +490,21 @@ export function BackgroundRemoverTool() {
                         </div>
                       </div>
                     </TabsContent>
-                    <TabsContent value="image" className="pt-4">
-                      <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-sm" />
+                    <TabsContent value="image" className="pt-4 space-y-3">
+                      {customBgBlob && customBgUrl ? (
+                        <div className="flex items-center gap-3 rounded-md border bg-background px-3 py-2">
+                          <img src={customBgUrl} alt="Background" className="h-10 w-10 rounded object-cover shrink-0" />
+                          <span className="text-xs text-muted-foreground flex-1 truncate">Background image selected</span>
+                          <button
+                            onClick={() => setCustomBgBlob(null)}
+                            className="text-[11px] text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <Input type="file" accept="image/*" onChange={(e) => setCustomBgBlob(e.target.files?.[0] || null)} className="text-sm" />
+                      )}
                     </TabsContent>
                   </Tabs>
                 </div>

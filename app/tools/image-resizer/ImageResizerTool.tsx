@@ -12,6 +12,14 @@ import { cn } from "@/lib/utils";
 
 const ACCEPT = ["image/jpeg", "image/png", "image/webp"];
 
+type Fit = "stretch" | "cover" | "contain";
+
+const FITS: { value: Fit; label: string; hint: string }[] = [
+  { value: "stretch", label: "Stretch", hint: "Force exact size — may distort the image" },
+  { value: "cover", label: "Cover", hint: "Fill the frame and crop the overflow — no distortion" },
+  { value: "contain", label: "Contain", hint: "Fit the whole image and pad the rest — no distortion" },
+];
+
 const SOCIAL_PRESETS = [
   { label: "1:1", w: 1080, h: 1080, hint: "Instagram square" },
   { label: "16:9", w: 1920, h: 1080, hint: "Widescreen / YouTube" },
@@ -22,22 +30,77 @@ const SOCIAL_PRESETS = [
   { label: "OG Image", w: 1200, h: 630, hint: "Open Graph / meta image" },
 ];
 
+// Progressive halving for sharp downscales — drawing straight to a tiny canvas
+// aliases badly, so we step the image down by no more than 2x per pass.
+function stepDownscale(
+  source: CanvasImageSource,
+  srcW: number,
+  srcH: number,
+  destW: number,
+  destH: number
+): CanvasImageSource {
+  let cw = srcW;
+  let ch = srcH;
+  let current = source;
+  while (cw > destW * 2 || ch > destH * 2) {
+    cw = Math.max(destW, Math.floor(cw / 2));
+    ch = Math.max(destH, Math.floor(ch / 2));
+    const tmp = document.createElement("canvas");
+    tmp.width = cw;
+    tmp.height = ch;
+    const tctx = tmp.getContext("2d")!;
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = "high";
+    tctx.drawImage(current, 0, 0, cw, ch);
+    current = tmp;
+  }
+  return current;
+}
+
 async function resizeCanvas(
   file: File,
   targetW: number,
-  targetH: number
+  targetH: number,
+  fit: Fit,
+  fillColor: string,
+  transparent: boolean
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
       const canvas = document.createElement("canvas");
       canvas.width = targetW;
       canvas.height = targetH;
       const ctx = canvas.getContext("2d")!;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      // Geometry of where the source lands on the target canvas.
+      let dx = 0, dy = 0, dw = targetW, dh = targetH;
+      if (fit === "cover") {
+        const scale = Math.max(targetW / iw, targetH / ih);
+        dw = iw * scale; dh = ih * scale;
+        dx = (targetW - dw) / 2; dy = (targetH - dh) / 2;
+      } else if (fit === "contain") {
+        const scale = Math.min(targetW / iw, targetH / ih);
+        dw = iw * scale; dh = ih * scale;
+        dx = (targetW - dw) / 2; dy = (targetH - dh) / 2;
+        if (!(transparent && file.type !== "image/jpeg")) {
+          ctx.fillStyle = file.type === "image/jpeg" ? fillColor || "#ffffff" : fillColor;
+          ctx.fillRect(0, 0, targetW, targetH);
+        }
+      } else if (file.type === "image/jpeg") {
+        // Stretch onto JPEG — no alpha, so guarantee an opaque base.
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, targetW, targetH);
+      }
+
+      // Pre-shrink large sources for crisp results, then composite.
+      const src = stepDownscale(img, iw, ih, Math.round(dw), Math.round(dh));
+      ctx.drawImage(src, dx, dy, dw, dh);
       URL.revokeObjectURL(url);
       canvas.toBlob(
         (b) => { if (b) resolve(b); else reject(new Error("Resize failed")); },
@@ -58,11 +121,22 @@ export function ImageResizerTool() {
   const [height, setHeight] = React.useState("");
   const [percent, setPercent] = React.useState("100");
   const [locked, setLocked] = React.useState(true);
+  const [fit, setFit] = React.useState<Fit>("stretch");
+  const [fillColor, setFillColor] = React.useState("#ffffff");
+  const [transparent, setTransparent] = React.useState(true);
   const [outputBlob, setOutputBlob] = React.useState<Blob | null>(null);
   const [outputUrl, setOutputUrl] = React.useState<string | null>(null);
   const [processing, setProcessing] = React.useState(false);
 
   const previewUrl = useFilePreview(file);
+
+  const supportsAlpha = file ? file.type !== "image/jpeg" : true;
+  const w = parseInt(width);
+  const h = parseInt(height);
+  // Does the target aspect ratio differ from the source? Then fit matters.
+  const ratioMismatch =
+    origW > 0 && origH > 0 && !isNaN(w) && !isNaN(h) && w > 0 && h > 0 &&
+    Math.abs(w / h - origW / origH) > 0.01;
 
   // When file loads, get its dimensions
   React.useEffect(() => {
@@ -77,8 +151,6 @@ export function ImageResizerTool() {
       URL.revokeObjectURL(url);
     };
     img.src = url;
-    setOutputBlob(null);
-    setOutputUrl(null);
   }, [file]);
 
   // Cleanup output URL
@@ -86,12 +158,30 @@ export function ImageResizerTool() {
     return () => { if (outputUrl) URL.revokeObjectURL(outputUrl); };
   }, [outputUrl]);
 
+  // Keyboard shortcuts (advertised in the hint bar)
+  React.useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); handleResize(); }
+      if (e.key === "Escape") handleReset();
+      if ((e.metaKey || e.ctrlKey) && e.key === "s" && outputBlob) { e.preventDefault(); handleDownload(); }
+    }
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
+  function handleSelect(f: File) {
+    setFile(f);
+    setOutputBlob(null);
+    setOutputUrl(null);
+  }
+
   function handleReset() {
     setFile(null);
     setOutputBlob(null);
     setOutputUrl(null);
     setPercent("100");
     setLocked(true);
+    setFit("stretch");
   }
 
   // Pixel tab: sync height when width changes (if locked)
@@ -112,12 +202,12 @@ export function ImageResizerTool() {
 
   async function handleResize() {
     if (!file || processing) return;
-    const w = parseInt(width);
-    const h = parseInt(height);
-    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) return;
+    const tw = parseInt(width);
+    const th = parseInt(height);
+    if (isNaN(tw) || isNaN(th) || tw <= 0 || th <= 0) return;
     setProcessing(true);
     try {
-      const blob = await resizeCanvas(file, w, h);
+      const blob = await resizeCanvas(file, tw, th, fit, fillColor, transparent && supportsAlpha);
       if (outputUrl) URL.revokeObjectURL(outputUrl);
       const url = URL.createObjectURL(blob);
       setOutputBlob(blob);
@@ -126,11 +216,15 @@ export function ImageResizerTool() {
     finally { setProcessing(false); }
   }
 
-  function applyPreset(w: number, h: number) {
-    setWidth(String(w));
-    setHeight(String(h));
+  function applyPreset(pw: number, ph: number) {
+    setWidth(String(pw));
+    setHeight(String(ph));
     setLocked(false);
     setOutputBlob(null);
+    // Presets usually change aspect ratio — default to non-distorting Cover.
+    if (origW && origH && Math.abs(pw / ph - origW / origH) > 0.01) {
+      setFit((prev) => (prev === "stretch" ? "cover" : prev));
+    }
   }
 
   function applyPercent(pctStr: string) {
@@ -151,11 +245,12 @@ export function ImageResizerTool() {
       {/* Shortcuts */}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <kbd className="px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">⌘↵</kbd><span>Resize</span>
+        <kbd className="px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">⌘S</kbd><span>Download</span>
         <kbd className="px-1.5 py-0.5 rounded border border-border font-mono text-[10px]">esc</kbd><span>Reset</span>
       </div>
 
       {!file ? (
-        <DropZone accept={ACCEPT} maxSizeMB={50} onFiles={([f]) => setFile(f)} />
+        <DropZone accept={ACCEPT} maxSizeMB={50} onFiles={([f]) => handleSelect(f)} />
       ) : (
         <div className="space-y-5">
           {/* Preview */}
@@ -188,7 +283,7 @@ export function ImageResizerTool() {
           </div>
 
           {/* Controls */}
-          <div className="rounded-lg border border-border/60 bg-card px-5 py-4">
+          <div className="rounded-lg border border-border/60 bg-card px-5 py-4 space-y-4">
             <Tabs defaultValue="pixels" id="resize-tabs">
               <TabsList className="mb-4">
                 <TabsTrigger value="pixels" id="resize-tab-pixels">Pixels</TabsTrigger>
@@ -287,6 +382,65 @@ export function ImageResizerTool() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            {/* Fit mode — only meaningful when the aspect ratio changes */}
+            <div className={cn("space-y-2 border-t border-border/60 pt-4", !ratioMismatch && "opacity-60")}>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Fit</span>
+                {!ratioMismatch && (
+                  <span className="text-[10px] text-muted-foreground">Aspect ratio matches — fit has no effect</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {FITS.map((f) => (
+                  <Tooltip key={f.value}>
+                    <TooltipTrigger asChild>
+                      <button
+                        id={`resize-fit-${f.value}`}
+                        onClick={() => { setFit(f.value); setOutputBlob(null); }}
+                        className={cn(
+                          "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                          fit === f.value
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        )}
+                      >
+                        {f.label}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{f.hint}</TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+
+              {/* Padding color for Contain */}
+              {fit === "contain" && (
+                <div className="flex items-center gap-3 pt-1">
+                  {supportsAlpha && (
+                    <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={transparent}
+                        onChange={(e) => { setTransparent(e.target.checked); setOutputBlob(null); }}
+                        className="rounded"
+                      />
+                      Transparent
+                    </label>
+                  )}
+                  {!(transparent && supportsAlpha) && (
+                    <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      Padding
+                      <input
+                        type="color"
+                        value={fillColor}
+                        onChange={(e) => { setFillColor(e.target.value); setOutputBlob(null); }}
+                        className="h-7 w-9 rounded border border-input cursor-pointer bg-background p-0.5"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
