@@ -61,6 +61,80 @@ function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: num
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
+// ── map (self-hosted Leaflet + OSM tiles) ──────────────────────────────────
+// We render the map ourselves rather than embedding openstreetmap.org's
+// export/embed.html in an <iframe>: framed third-party pages are frequently
+// blocked by privacy/ad-blockers (showing a "blocked content" placeholder),
+// whereas plain tile images load reliably.
+declare global { interface Window { L?: unknown } }
+
+function LeafletMap({ lat, lng, label }: { lat: number; lng: number; label?: string }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inst = React.useRef<any>(null);
+  const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        if (!document.getElementById("leaflet-css")) {
+          const link = document.createElement("link");
+          link.id = "leaflet-css";
+          link.rel = "stylesheet";
+          link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          document.head.appendChild(link);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!(window as any).L) {
+          await new Promise<void>((res, rej) => {
+            const s = document.createElement("script");
+            s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+            s.onload = () => res();
+            s.onerror = () => rej(new Error("leaflet failed to load"));
+            document.head.appendChild(s);
+          });
+        }
+        if (cancelled || !ref.current) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const L = (window as any).L;
+        const map = L.map(ref.current, { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([lat, lng], 11);
+        inst.current = map;
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap contributors",
+          maxZoom: 19,
+        }).addTo(map);
+        const icon = L.divIcon({
+          className: "",
+          html: '<div style="width:16px;height:16px;border-radius:50% 50% 50% 0;background:#ef4444;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>',
+          iconSize: [16, 16],
+          iconAnchor: [8, 14],
+        });
+        L.marker([lat, lng], { icon }).addTo(map).bindPopup(label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      } catch {
+        if (!cancelled) setFailed(true);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+      if (inst.current) {
+        try { inst.current.remove(); } catch { /* */ }
+        inst.current = null;
+      }
+    };
+  }, [lat, lng, label]);
+
+  if (failed) {
+    return (
+      <div className="w-full h-56 flex items-center justify-center bg-secondary/30 text-xs text-muted-foreground px-4 text-center">
+        Map couldn&apos;t load (a content blocker may be active). Coordinates and the Google Maps link still work.
+      </div>
+    );
+  }
+  return <div ref={ref} className="w-full h-56 bg-secondary/20" />;
+}
+
 // ── providers ───────────────────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeIpwho(d: any): IPData {
@@ -218,9 +292,7 @@ export function IpLookupTool() {
     } catch { /* */ }
   }
 
-  const mapUrl = result?.latitude != null && result?.longitude != null
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${result.longitude - 0.4},${result.latitude - 0.4},${result.longitude + 0.4},${result.latitude + 0.4}&layer=mapnik&marker=${result.latitude},${result.longitude}`
-    : null;
+  const hasCoords = result?.latitude != null && result?.longitude != null;
 
   const distance = result && myData && result.ip !== myData.ip
     && result.latitude != null && result.longitude != null
@@ -367,9 +439,14 @@ export function IpLookupTool() {
           </div>
 
           {/* Map */}
-          {mapUrl && (
+          {hasCoords && (
             <div className="rounded-lg overflow-hidden border border-border/60">
-              <iframe src={mapUrl} className="w-full h-56" style={{ border: "none" }} title="IP location map" loading="lazy" />
+              <LeafletMap
+                key={`${result.latitude},${result.longitude}`}
+                lat={result.latitude!}
+                lng={result.longitude!}
+                label={[result.city, result.country].filter(Boolean).join(", ") || result.ip}
+              />
               <div className="flex items-center justify-between px-3 py-1.5 border-t border-border/40">
                 <p className="text-[10px] text-muted-foreground">IP geolocation is approximate (city-level at best).</p>
                 <a href={`https://www.google.com/maps?q=${result.latitude},${result.longitude}`} target="_blank" rel="noopener noreferrer"
