@@ -3,7 +3,8 @@ import { ToolShell } from "@/components/tool-shell/ToolShell";
 import { SpeedTestTool } from "./SpeedTestTool";
 export const metadata: Metadata = {
   title: "Network Speed Test",
-  description: "Test your connection speed to kit.shreyannarula.com. Measures download speed and ping with historical tracking.",
+  description:
+    "Accurate browser speed test: download, upload, ping, jitter and bufferbloat measured against the nearest Cloudflare edge using multiple parallel connections. Live gauge, connection info, and test history.",
   alternates: { canonical: "https://kit.shreyannarula.com/tools/speed-test" },
 };
 export default function Page() {

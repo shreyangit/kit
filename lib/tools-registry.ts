@@ -697,7 +697,7 @@ export const tools: Tool[] = [
   { id: "readability", name: "Readability Scorer", description: "Score text with 6 algorithms: Flesch, FK, Fog, SMOG, Coleman-Liau, ARI.", category: "writing", icon: "BookOpen", tags: ["readability","flesch","fog","smog","ari","grade","text","writing"], isNew: true, isImplemented: true },
   { id: "text-to-handwriting", name: "Text to Handwriting", description: "Convert typed text to handwritten-style images. Multiple fonts, download PNG.", category: "writing", icon: "PenLine", tags: ["handwriting","text","image","canvas","font","google","png"], isNew: true, isImplemented: true },
   { id: "data-url", name: "Data URL Encoder / Decoder", description: "Encode files to data URLs or decode data URLs back to files.", category: "text-code", icon: "FileCode2", tags: ["data","url","base64","encode","decode","mime","datauri"], isNew: true, isImplemented: true },
-  { id: "speed-test", name: "Network Speed Test", description: "Test download speed and ping to this server. Historical tracking.", category: "productivity", icon: "Wifi", tags: ["speed","test","network","ping","download","bandwidth","latency"], isNew: true, isImplemented: true },
+  { id: "speed-test", name: "Network Speed Test", description: "Measure download, upload, ping, jitter & bufferbloat against the nearest Cloudflare edge. Live gauge, connection info, and history.", category: "productivity", icon: "Wifi", tags: ["speed","test","network","ping","download","upload","bandwidth","latency","jitter","bufferbloat"], isNew: true, isImplemented: true },
 ];
 
 export function getToolById(id: string): Tool | undefined {
