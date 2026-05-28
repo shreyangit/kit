@@ -41,9 +41,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   function setTheme(t: Theme) {
-    setThemeState(t);
-    applyTheme(t);
-    localStorage.setItem("kit_theme", t);
+    if (t === theme) return;
+    const root = document.documentElement;
+    try { localStorage.setItem("kit_theme", t); } catch { /* private mode */ }
+
+    const apply = () => { applyTheme(t); setThemeState(t); };
+
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { apply(); return; }
+
+    // Best path: a composited, jank-free crossfade of the whole page.
+    const startViewTransition = (
+      document as Document & { startViewTransition?: (cb: () => void) => void }
+    ).startViewTransition?.bind(document);
+    if (startViewTransition) {
+      startViewTransition(apply);
+      return;
+    }
+
+    // Fallback: brief, uniform transition on all elements during the switch only.
+    root.classList.add("theme-transition");
+    // Force the transition declaration to be live before the colours change.
+    void root.offsetHeight;
+    apply();
+    window.setTimeout(() => root.classList.remove("theme-transition"), 360);
   }
 
   return (

@@ -136,24 +136,52 @@
 }
 
 /* ============================================================
-   SMOOTH THEME TRANSITIONS — only fires for user-initiated changes
+   THEME SWITCHING
+   There is intentionally NO always-on global colour transition.
+   A transition on every element (with mismatched bg/color/border
+   durations) made theme changes stagger and tear, and slowed ordinary
+   interactions. Instead we crossfade ONLY during a user-initiated theme
+   change:
+     • Browsers with the View Transitions API get a composited crossfade.
+     • Everyone else gets a brief, *uniform* transition via .theme-transition.
    ============================================================ */
-html {
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
-
-/* Only apply color/bg/border transitions on interactive elements
-   to avoid slowing down animations that need to be instant */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   border-color: var(--border);
+}
+
+html.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
   transition:
-    background-color 0.22s ease,
-    border-color 0.22s ease,
-    color 0.18s ease,
-    opacity 0.18s ease;
+    background-color 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    fill 0.28s ease,
+    stroke 0.28s ease !important;
+  transition-delay: 0s !important;
+}
+
+/* View Transitions crossfade timing for theme changes */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
 }
 
 /* Remove transitions from elements where speed matters */
